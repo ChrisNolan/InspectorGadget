@@ -1,0 +1,15 @@
+## Title: InspectorGadget
+## Notes: A gadget to improve access to information about players you encounter in the World of Warcraft
+## Author: Hiketeia
+## X-License: MIT
+
+## Interface: 60200
+## Version: 6.2.4.1
+
+## DefaultState: disabled
+
+## X-Category: Companions
+## X-Localizations: enUS
+
+InspectorGadget.lua
+InspectorGadget.xml
