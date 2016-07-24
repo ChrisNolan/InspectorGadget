@@ -43,27 +43,6 @@ local function IGMount_Show(index)
 end
 
 
--- original test function - can be removed TODO
-function WhatMount1(unit)
-	print "Buffs: "
-	for i = 0, 40 do
-		local name, rank, icon, count, dispelType, duration, expires, caster, isStealable, shouldConsolidate, spellID, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff(unit, i) -- , "PLAYER")
-		if name then
-			-- Call GetSpellDescription and parse that for the word 'mount' - would that be enough?
-			-- 'mount' isn't enough - Acherus Deathcharger doesn't say mount - is that just class mounts?  "Summons and dismisses" 
-			-- 179245 "Hire a Chauffeur to drive you around" - spell case again :-(
-			-- 93326 "Transforms you into" Sandstone drake but does say it is a mount at the end
-			-- 61425 Calls Forth the Traveler's Tundra Mammoth -- ugh, another exception :-(  so much for parsing the spell desc
-			local desc = GetSpellDescription(spellID)
-			print(i .. ": " .. name .. " " .. spellID .. " " .. desc)
-		end
-		-- SpellID 32292 "Swift Purple Gryphon"
-		-- ItemRefTooltip
-		-- SpellID 59650 "Black Drake"
-		-- Garn Nighthowl has weird colouring in its tooltip.
-	end
-end
-
 -- return a table of info about the mount the unit is on
 function IGMount(unit)
 	local i=1;--    Initialize at index 1
@@ -115,11 +94,84 @@ end
 -- Code to monitor your own item level and notify you of a change http://www.wowinterface.com/forums/showpost.php?p=308065&postcount=7
 -- Code to add an item level to the player tooltip: http://www.wowinterface.com/forums/showpost.php?p=304938&postcount=2
 -- Internally, this is the code used on the default inspect screen for your own character to show your ilvl https://www.townlong-yak.com/framexml/19831/PaperDollFrame.lua#1458
-
+-- Use Addon Messages to respond with the info rather than via inspect?  i.e. for iLvl if party members are using the addon too, get it from them?  Could we do account-wide stuff too?  i.e sure this shaman is only 701, but they have two toons which are 725 so cut them some slack?
+-- Interface/AddOns/Blizzard_InspectUI
+-- http://wow.gamepedia.com/API_GetItemTransmogrifyInfo
+-- Couple other inspect addons to review: http://mods.curse.com/addons/wow/examiner, http://mods.curse.com/addons/wow/inspect-equip
 
 function IGInspect_Show()
 	if (UnitPlayerControlled("target") and CheckInteractDistance("target", 1) and not UnitIsUnit("player", "target")) then
 		InspectUnit("target")
+	end
+end
+
+-- WIP function to try and understand how the api calls work
+--  ATM this only works for myself, and not other person.  Started thread @ http://www.wowinterface.com/forums/showthread.php?p=314771#post314771 to see if I'm missing something
+function IGInspectTransmogDump()
+	transmogSlots = { InspectHeadSlot, InspectShoulderSlot, InspectBackSlot, InspectChestSlot, InspectWristSlot, InspectHandsSlot, InspectWaistSlot, InspectLegsSlot, InspectFeetSlot, InspectMainHandSlot, InspectSecondaryHandSlot }
+
+	unit = "player"
+
+	for i, slot in ipairs(transmogSlots) do
+	   slotId = slot:GetID()
+	   local isTransmogrified, canTransmogrify, cannotTransmogrifyReason, hasPending, hasUndo, visibleItemID, textureName = GetTransmogrifySlotInfo(slotId)
+	   if isTransmogrified then
+		  local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(visibleItemID)
+		  local itemId = GetInventoryItemID(unit, slotId)
+		  -- local itemLink = GetInventoryItemLink(unit, )
+		  print (format("Slot %s is transmogrified to %s. %s", slotId, link, itemId))
+	   end
+	   
+	end
+end
+
+-- WIP function to try and understand how the api calls work
+--  ATM this only works for myself, and not other person.  Started thread @ http://www.wowinterface.com/forums/showthread.php?p=314771#post314771 to see if I'm missing something
+function IGInspectTransmogDumpv2()
+	CreateFrame( "GameTooltip", "MyScanningTooltip", nil, "GameTooltipTemplate" ); -- Tooltip name cannot be nil
+
+	local function ScanTooltipOfUnitSlotForTransmog(unit,slot)
+	   local tooltip = MyScanningTooltip
+	   local isTransmogrified = false
+	   local itemName = nil
+	   tooltip:SetOwner( WorldFrame, "ANCHOR_NONE" ); -- does a ClearLines() already
+	   tooltip:SetInventoryItem(unit,slot)
+	   for i=1,MyScanningTooltip:NumLines() do
+		  local left = _G["MyScanningTooltipTextLeft"..i]:GetText()
+		  if left then
+			 if isTransmogrified then
+				-- The line after the Transmog header has been found will be the name
+				-- might have to parse Illusion: Hidden
+				itemName = left
+				break -- return isTransmogrified, itemName
+			 end
+			 
+			 if left == "Transmogrified to:" then -- Deal with localization - any better patterns to match?
+				isTransmogrified = true
+			 end
+		  end
+	   end
+	   return isTransmogrified, itemName
+	end
+
+	transmogSlots = { InspectHeadSlot, InspectShoulderSlot, InspectBackSlot, InspectChestSlot, InspectWristSlot, InspectHandsSlot, InspectWaistSlot, InspectLegsSlot, InspectFeetSlot, InspectMainHandSlot, InspectSecondaryHandSlot }
+
+	-- Inspect the target manually before you try unless you've targetted yourself
+	unit = "playertarget"
+
+	for i, slot in ipairs(transmogSlots) do
+	   slotId = slot:GetID()
+	   
+	   local isTransmogrified, itemName = ScanTooltipOfUnitSlotForTransmog(unit,slotId)
+	   if isTransmogrified then
+		  local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemName)
+		  if link then
+			 -- Can't call by itemName unless I have it in my bags... ugh!
+			 print (format("Slot %s is transmogrified to %s.", slotId, link))
+		  else
+			 print (format("Slot %s is transmogrified to %s", slotId, itemName))
+		  end
+	   end
 	end
 end
 
