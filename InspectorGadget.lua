@@ -6,31 +6,30 @@
 --  * http://wow.curseforge.com/addons/libaboutpanel/
 --  * http://www.wowace.com/addons/ace3/pages/getting-started/
 
--- TODO wait until after PLAYER_LOGIN finishes before doing this code to be sure it is ready?
+
+InspectorGadget = CreateFrame("Frame") -- TODO if I have this here, do I need the .xml file?
+local addon = InspectorGadget
+
 local MountCache={};--  Stores our discovered mounts' spell IDs
-for i=1,C_MountJournal.GetNumMounts() do--  Loop though all mounts
-	-- TODO they've added a C_MountJournal.GetMountIDs() now... might be a cleaner way of building this cache...
-	local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID = C_MountJournal.GetDisplayedMountInfo(i);--   Grab mount spell ID
-	if spellID then
-		MountCache[spellID]={index = i, creatureName = creatureName, spellID = spellID, mountID = mountID};-- Register spell ID in our cache
+
+local function buildMountCache()
+	for i = 1, C_MountJournal.GetNumMounts() do --  Loop though all mounts
+		local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID = C_MountJournal.GetDisplayedMountInfo(i);--   Grab mount spell ID
+		if spellID then
+			MountCache[spellID] = { -- Register spell ID in our cache
+				index = i,
+				creatureName = creatureName,
+				spellID = spellID,
+				mountID = mountID
+			};
+		end
+		-- TODO manually add class specific mounts that aren't in everyone's journal?  Like "Felsteed"
 	end
 end
 
 
 function InspectorGadget_OnLoad(self)
 
-end
-
--- Put a button on the screen to query what mount the target is on
-local function IGMountDebugButton()
-	-- WhatMount debugging
-	local b = CreateFrame("Button", "WhatMountButton", UIParent, "UIPanelButtonTemplate")
-	b:SetSize(120 ,22) -- width, height
-	b:SetText("What Mount?")
-	b:SetPoint("CENTER")
-	b:SetScript("OnClick", function()
-		IGMount_Report()
-	end)
 end
 
 -- show the mount journal
@@ -48,7 +47,7 @@ end
 
 -- return a table of info about the mount the unit is on
 function IGMount(unit)
-	local i=1;--    Initialize at index 1
+	local i = 1; --    Initialize at index 1
 	if not unit then
 		unit = "playertarget"
 	end
@@ -70,7 +69,7 @@ function IGMount_Report()
 		C_MountJournal.Pickup(mount.index)
 		IGMount_Show(mount.index)
 	else
-		print "Inspector Gadget Mount reports: Not mounted"
+		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Mount reports: Not mounted")
 	end
 end
 
@@ -84,7 +83,7 @@ function IGMount_Clone()
 		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		C_MountJournal.SummonByID(mount.mountID)
 	else
-		print "Inspector Gadget Mount reports: Not mounted"
+		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Mount reports: Not mounted - Unable to clone.")
 	end
 end
 
@@ -101,10 +100,15 @@ end
 -- Interface/AddOns/Blizzard_InspectUI
 -- http://wow.gamepedia.com/API_GetItemTransmogrifyInfo
 -- Couple other inspect addons to review: http://mods.curse.com/addons/wow/examiner, http://mods.curse.com/addons/wow/inspect-equip
+-- 7.0 changed a bunch.... current research:
+--    InspectPaperDoll - InspectpaperDollViewButton_OnClick() calling C_TransmogCollection.GetInspectSources()
+--    FrameXML/DressUpFrames.lua / DressUpFrame_Show() + DressUpSources()
+
 
 function IGInspect_Show()
 	if (UnitPlayerControlled("target") and CheckInteractDistance("target", 1) and not UnitIsUnit("player", "target")) then
 		InspectUnit("target")
+		-- TODO how do I get the INSPECT_READY event here?  do a RegisterEvent?
 	end
 end
 
@@ -122,9 +126,60 @@ function IGInspectTransmogDump()
 		  local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(visibleItemID)
 		  local itemId = GetInventoryItemID(unit, slotId)
 		  -- local itemLink = GetInventoryItemLink(unit, )
-		  print (format("Slot %s is transmogrified to %s. %s", slotId, link, itemId))
+		  DEFAULT_CHAT_FRAME:AddMessage(format("Slot %s is transmogrified to %s. %s", slotId, link, itemId))
 	   end
 	   
+	end
+end
+
+local transmogCategories = {}
+transmogCategories[1] = "Head";
+transmogCategories[2] = "Shoulder";
+transmogCategories[3] = "Back";
+transmogCategories[4] = "Chest";
+transmogCategories[5] = "Shirt";
+transmogCategories[6] = "Tabard";
+transmogCategories[7] = "Wrist";
+transmogCategories[8] = "Hands";
+transmogCategories[9] = "Waist";
+transmogCategories[10] = "Legs";
+transmogCategories[11] = "Feet";
+transmogCategories[12] = "Wand";
+transmogCategories[13] = "One-Handed Axes";
+transmogCategories[14] = "One-Handed Swords";
+transmogCategories[15] = "One-Handed Maces";
+transmogCategories[16] = "Daggers";
+transmogCategories[17] = "Fist Weapons";
+transmogCategories[18] = "Shields";
+transmogCategories[19] = "Held In Off-hand";
+transmogCategories[20] = "Two-Handed Axes";
+transmogCategories[21] = "Two-Handed Swords";
+transmogCategories[22] = "Two-Handed Maces";
+transmogCategories[23] = "Staves";
+transmogCategories[24] = "Polearms";
+transmogCategories[25] = "Bows";
+transmogCategories[26] = "Guns";
+transmogCategories[27] = "Crossbows";
+transmogCategories[28] = "Warglaives";
+
+-- Dumps a full list of the inspected unit's appearances to the chat framexml/19831/PaperDollFrame 
+-- TODO make a pretty window, like the paperdoll frame showing the item icons etc.
+function IGInspectSourcesDump()
+	-- need to be inspecting someone already?
+	appearanceSources = C_TransmogCollection.GetInspectSources()
+
+	if appearanceSources then
+		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Appearances Dump")
+		for i = 1, #appearanceSources do
+			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
+				categoryID , appearanceID, unknownBoolean1, uiOrder, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
+				DEFAULT_CHAT_FRAME:AddMessage(format("%s is item %s (appearance %s)", transmogCategories[categoryID], itemLink, appearanceLink))
+				-- TODO the appearanceLink doesn't seem to work right -- I think it is a wow bug, because when you learn a new appearance it fails too
+				-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
+			end
+		end
+	else
+		print("Inspector Gadget not ready")
 	end
 end
 
@@ -178,8 +233,84 @@ function IGInspectTransmogDumpv2()
 	end
 end
 
+-- playing around... should probably fork this if I don't finish it tonight?
+-- https://github.com/tomrus88/BlizzardInterfaceCode/blob/8d22f338783f1a9722552e662904c3c0eaf46d75/Interface/FrameXML/DressUpFrames.lua
+
+local function MessingAround1()
+	-- storing stuff I'm tossing into wowlua trying to get a handle on the un-documented features.
+	local dressUpModel = CreateFrame('DressUpModel')
+	DressUpSources(C_TransmogCollection.GetInspectSources())
+	DressUpModel:TryOn(9610)
+	print(DressUpModel:GetSlotTransmogSources(1))
+	print(DressUpModel:GetSlotTransmogSources(3))
+	
+	print(C_TransmogCollection.GetAppearanceSourceInfo(9610))
+	
+	print(C_TransmogCollection.GetAppearanceSourceInfo(30469))
+	
+	appearanceSources = C_TransmogCollection.GetInspectSources()
+
+	print("   ")
+
+	for i = 1, #appearanceSources do
+		if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
+			-- DressUpModel:TryOn(appearanceSources[i]);
+			print(C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i]))
+		end
+	end
+
+print(" ")
+print(C_TransmogCollection.GetAppearanceSourceInfo(9610))
+print("Sources: ")
+tprint(C_TransmogCollection.GetAppearanceSources(9610)) -- appearanceID returns a table of sourceType, name, isCollected, sourceID, quality
+print("Appearance Info: ")
+tprint(C_TransmogCollection.GetAppearanceInfoBySource(20754)) -- sourceID
+
+end
+
+-- toss a button onto the Inspect UI next to the 'view in dressing room' button.
+-- TODO pretty it up
+local function createIGPaperDollButton()
+	if not IGPaperDollButton then
+		IGPaperDollButton = CreateFrame("Button", "IGPaperDollButton", InspectFrame, "UIPanelButtonTemplate")
+		IGPaperDollButton:SetWidth(30)
+		IGPaperDollButton:SetPoint("BOTTOMLEFT", InspectPaperDollFrame.ViewButton, "BOTTOMRIGHT", 2, 0)
+		IGPaperDollButton:SetHeight(22)
+		IGPaperDollButton:SetText("IG")
+		IGPaperDollButton:SetScript("OnClick", function(self) IGInspectSourcesDump() end)
+	end
+end
+
+
+
+
+--------------------------------------------------------------------------------
+-- Event Handler
+--
+local events = {}
+
+function events:INSPECT_READY(...)
+	createIGPaperDollButton()
+end
+
+function events:PLAYER_LOGIN(...)
+	buildMountCache()
+end
+
+addon:SetScript("OnEvent", function(self, event, ...)
+	events[event](self, ...)
+end)
+
+for k,_ in pairs(events) do
+	addon:RegisterEvent(k)
+end
+
+
 -- Configuration for the slash command dispatcher
 local IGCommandTable = {
+	["inspect"] = function()
+		IGInspect_Show()
+	end,
 	["mount"] = {
 		["clone"] = function()
 			IGMount_Clone()
@@ -192,7 +323,7 @@ local IGCommandTable = {
 		end,
 		["help"] = "Inspector Gadget mount commands: clone, report",
 	},
-	["help"] = "Inspector Gadget commands: mount",
+	["help"] = "Inspector Gadget commands: inspect, mount",
 }
 
 -- slash command processor from Addon book
@@ -217,4 +348,20 @@ SLASH_INSPECTORGADGET1 = "/inspectorgadget"
 SLASH_INSPECTORGADGET2 = "/ig"
 SlashCmdList["INSPECTORGADGET"] = function(message)
 	DispatchCommand(message, IGCommandTable)
+end
+
+-- a table print function i took from some website to help me learn more about the results in wowlua ... 
+local function tprint (tbl, indent)
+  if not indent then indent = 0 end
+  for k, v in pairs(tbl) do
+    formatting = string.rep("  ", indent) .. k .. ": "
+    if type(v) == "table" then
+      print(formatting)
+      tprint(v, indent+1)
+    elseif type(v) == 'boolean' then
+      print(formatting .. tostring(v))      
+    else
+      print(formatting .. v)
+    end
+  end
 end

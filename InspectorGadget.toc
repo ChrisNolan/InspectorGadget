@@ -1,14 +1,14 @@
 ## Title: InspectorGadget
-## Notes: A gadget to improve access to information about players you encounter in the World of Warcraft
+## Notes: A gadget to improve access to information about players you encounter in the World of Warcraft.  Such as what they are wearing, or which mount they are on.
 ## Author: Hiketeia
 ## X-License: MIT
 
 ## Interface: 70000
 ## Version: 7.0.3.1
 
-## DefaultState: disabled
+## DefaultState: enabled
 
-## X-Category: Companions
+## X-Category: Transmogrify, Companions
 ## X-Localizations: enUS
 
 InspectorGadget.lua
