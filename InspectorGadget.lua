@@ -9,8 +9,11 @@
 -- TODO wait until after PLAYER_LOGIN finishes before doing this code to be sure it is ready?
 local MountCache={};--  Stores our discovered mounts' spell IDs
 for i=1,C_MountJournal.GetNumMounts() do--  Loop though all mounts
-	local creatureName,spellid=C_MountJournal.GetMountInfo(i);--   Grab mount spell ID
-	MountCache[spellid]={index = i, creatureName = creatureName, spellID = spellid};-- Register spell ID in our cache
+	-- TODO they've added a C_MountJournal.GetMountIDs() now... might be a cleaner way of building this cache...
+	local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID = C_MountJournal.GetDisplayedMountInfo(i);--   Grab mount spell ID
+	if spellID then
+		MountCache[spellID]={index = i, creatureName = creatureName, spellID = spellID, mountID = mountID};-- Register spell ID in our cache
+	end
 end
 
 
@@ -79,7 +82,7 @@ function IGMount_Clone()
 	local mount = IGMount("playertarget")
 	if mount then
 		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
-		C_MountJournal.Summon(mount.index)
+		C_MountJournal.SummonByID(mount.mountID)
 	else
 		print "Inspector Gadget Mount reports: Not mounted"
 	end

@@ -3,8 +3,8 @@
 ## Author: Hiketeia
 ## X-License: MIT
 
-## Interface: 60200
-## Version: 6.2.4.1
+## Interface: 70000
+## Version: 7.0.3.1
 
 ## DefaultState: disabled
 
