@@ -13,3 +13,4 @@
 
 InspectorGadget.lua
 InspectorGadget.xml
+InspectorGadgetWardrobe.xml

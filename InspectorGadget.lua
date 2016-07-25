@@ -183,6 +183,10 @@ function IGInspectSourcesDump()
 	end
 end
 
+function IGWardrobe_OnLoad()
+	IGInspectSourcesDump()
+end
+
 -- WIP function to try and understand how the api calls work
 --  ATM this only works for myself, and not other person.  Started thread @ http://www.wowinterface.com/forums/showthread.php?p=314771#post314771 to see if I'm missing something
 function IGInspectTransmogDumpv2()
@@ -268,19 +272,21 @@ tprint(C_TransmogCollection.GetAppearanceInfoBySource(20754)) -- sourceID
 
 end
 
--- toss a button onto the Inspect UI next to the 'view in dressing room' button.
--- TODO pretty it up
-local function createIGPaperDollButton()
-	if not IGPaperDollButton then
-		IGPaperDollButton = CreateFrame("Button", "IGPaperDollButton", InspectFrame, "UIPanelButtonTemplate")
-		IGPaperDollButton:SetWidth(30)
-		IGPaperDollButton:SetPoint("BOTTOMLEFT", InspectPaperDollFrame.ViewButton, "BOTTOMRIGHT", 2, 0)
-		IGPaperDollButton:SetHeight(22)
-		IGPaperDollButton:SetText("IG")
-		IGPaperDollButton:SetScript("OnClick", function(self) IGInspectSourcesDump() end)
+-- Add an extra 'tab' to the bottom of the InspectFrame
+--   very problematic to other addons that also add tabs?
+local function createInspectFrameTab()
+	if not InspectFrameTab5 then
+		INSPECTFRAME_SUBFRAMES[5] = "InspectorGadgetWardrobeFrame";
+		PanelTemplates_SetNumTabs(InspectFrame, 5);
+		InspectFrameTab5 = CreateFrame("Button", "InspectFrameTab5", InspectFrame, "CharacterFrameTabButtonTemplate")
+		InspectFrameTab5:SetID(5)
+		InspectFrameTab5:SetPoint("LEFT", InspectFrameTab4, "RIGHT", -16, 0)
+		InspectFrameTab5:SetText("IG")
+		InspectFrameTab5:SetScript("OnClick", function(self) IGWardrobe_OnLoad(); InspectFrameTab_OnClick(self); end)
+		InspectFrameTab5:SetScript("OnEnter", function(self) GameTooltip:SetOwner(self, "ANCHOR_RIGHT");GameTooltip:SetText("Wardrobe - Inspector Gadget", 1.0,1.0,1.0 );end)
+		InspectFrameTab5:SetScript("OnLeave", GameTooltip_Hide)
 	end
 end
-
 
 
 
@@ -290,7 +296,7 @@ end
 local events = {}
 
 function events:INSPECT_READY(...)
-	createIGPaperDollButton()
+	createInspectFrameTab()
 end
 
 function events:PLAYER_LOGIN(...)
