@@ -82,16 +82,16 @@
 				--InspectorGadgetWardrobeItemSlotButton_OnEvent(self, event, ...);
 			</OnEvent>
             <OnClick>
-				HandleModifiedItemClick(self.appearanceLink);
+				IGWardrobeItemTextButton_OnClick(self);
 			</OnClick>
 			<OnUpdate>
 				CursorOnUpdate(self);
 				if ( GameTooltip:IsOwned(self) ) then
-					InspectorGadgetWardrobeItemSlotButton_OnEnter(self);
+					--IGWardrobeItemTextButton_OnEnter(self);
 				end
 			</OnUpdate>
             <OnEnter>
-				--InspectorGadgetWardrobeItemSlotButton_OnEnter(self, motion);
+				--IGWardrobeItemTextButton_OnEnter(self, motion);
 			</OnEnter>
             <OnLeave>
 				GameTooltip:Hide();

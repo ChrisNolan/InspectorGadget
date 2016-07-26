@@ -181,6 +181,7 @@ function IGInspectSourcesDump()
 				-- TODO the appearanceLink doesn't seem to work right -- I think it is a wow bug, because when you learn a new appearance it fails too
 				-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
 				-- TODO this is really ugly... iterate it
+				--   consider local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID);
 				if     categoryID == 1 then
 					InspectorGadgetWardrobeHeadSlot.itemLink = itemLink
 					InspectorGadgetWardrobeHeadText.appearanceLink = appearanceLink
@@ -254,6 +255,21 @@ function IGWardrobeItemSlotButton_OnEnter(self)
 		GameTooltip:SetText(text);
 	end
 	CursorUpdate(self);
+end
+
+function IGWardrobeItemTextButton_OnClick(self)
+	-- code from FrameXML/ItemRef.lua's "transmogappearance" handler
+	if ( not CollectionsJournal ) then
+		CollectionsJournal_LoadUI();
+	end
+	if ( CollectionsJournal ) then
+		if self.appearanceLink then
+			-- what is the 'standard' way of extracting the 'hyperlink' from the full link?
+			local linkString = string.match(self.appearanceLink, "transmogappearance[%-?%d:]+")
+			-- debug the whole jumpToVisualID stuff from https://github.com/tomrus88/BlizzardInterfaceCode/blob/49f059f549c48d5811b13771a52c8a4cfff3b227/Interface/AddOns/Blizzard_Collections/Blizzard_Wardrobe.lua
+			WardrobeCollectionFrame_OpenTransmogLink(linkString);
+		end
+	end
 end
 
 function IGWardrobeFrame_UpdateButtons()
@@ -421,6 +437,23 @@ print("Sources: ")
 tprint(C_TransmogCollection.GetAppearanceSources(9610)) -- appearanceID returns a table of sourceType, name, isCollected, sourceID, quality
 print("Appearance Info: ")
 tprint(C_TransmogCollection.GetAppearanceInfoBySource(20754)) -- sourceID
+
+	link = "|cffff80ff|Htransmogappearance:33287|h[Rifle Commander's Eyepatch]|h|r"
+	_, sourceID = strsplit(":", link);
+	print(sourceID)
+	sourceID=tonumber(sourceID)
+	print(sourceID)
+	
+link = "|cffff80ff|Htransmogappearance:33287|h[Rifle Commander's Eyepatch]|h|r"
+_, sourceID = strsplit(":", link);
+print(sourceID)
+sourceID=tonumber(sourceID)
+print(sourceID)
+fixedlink = GetFixedLink(link)
+printable = gsub(fixedlink, "\124", "\124\124");
+print(printable)
+linkString = string.match(link, "transmogappearance[%-?%d:]+")
+print(linkString)
 
 end
 
