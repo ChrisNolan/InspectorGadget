@@ -181,17 +181,39 @@ function IGInspectSourcesDump()
 				-- TODO the appearanceLink doesn't seem to work right -- I think it is a wow bug, because when you learn a new appearance it fails too
 				-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
 				-- TODO this is really ugly... iterate it
-				if     categoryID == 1 then InspectorGadgetWardrobeHeadSlot.itemLink = itemLink
-				elseif categoryID == 2 then InspectorGadgetWardrobeShoulderSlot.itemLink = itemLink
-				elseif categoryID == 3 then InspectorGadgetWardrobeBackSlot.itemLink = itemLink
-				elseif categoryID == 4 then InspectorGadgetWardrobeChestSlot.itemLink = itemLink
-				elseif categoryID == 5 then InspectorGadgetWardrobeShirtSlot.itemLink = itemLink
-				elseif categoryID == 6 then InspectorGadgetWardrobeTabardSlot.itemLink = itemLink
-				elseif categoryID == 7 then InspectorGadgetWardrobeWristSlot.itemLink = itemLink
-				elseif categoryID == 8 then InspectorGadgetWardrobeHandsSlot.itemLink = itemLink
-				elseif categoryID == 9 then InspectorGadgetWardrobeWaistSlot.itemLink = itemLink
-				elseif categoryID ==10 then InspectorGadgetWardrobeLegsSlot.itemLink = itemLink
-				elseif categoryID ==11 then InspectorGadgetWardrobeFeetSlot.itemLink = itemLink
+				if     categoryID == 1 then
+					InspectorGadgetWardrobeHeadSlot.itemLink = itemLink
+					InspectorGadgetWardrobeHeadText.appearanceLink = appearanceLink
+				elseif categoryID == 2 then 
+					InspectorGadgetWardrobeShoulderSlot.itemLink = itemLink
+					InspectorGadgetWardrobeShoulderText.appearanceLink = appearanceLink
+				elseif categoryID == 3 then
+					InspectorGadgetWardrobeBackSlot.itemLink = itemLink
+					InspectorGadgetWardrobeBackText.appearanceLink = appearanceLink
+				elseif categoryID == 4 then
+					InspectorGadgetWardrobeChestSlot.itemLink = itemLink
+					InspectorGadgetWardrobeChestText.appearanceLink = appearanceLink
+				elseif categoryID == 5 then
+					InspectorGadgetWardrobeShirtSlot.itemLink = itemLink
+					InspectorGadgetWardrobeShirtText.appearanceLink = appearanceLink
+				elseif categoryID == 6 then
+					InspectorGadgetWardrobeTabardSlot.itemLink = itemLink
+					InspectorGadgetWardrobeTabardText.appearanceLink = appearanceLink
+				elseif categoryID == 7 then
+					InspectorGadgetWardrobeWristSlot.itemLink = itemLink
+					InspectorGadgetWardrobeWristText.appearanceLink = appearanceLink
+				elseif categoryID == 8 then
+					InspectorGadgetWardrobeHandsSlot.itemLink = itemLink
+					InspectorGadgetWardrobeHandsText.appearanceLink = appearanceLink
+				elseif categoryID == 9 then
+					InspectorGadgetWardrobeWaistSlot.itemLink = itemLink
+					InspectorGadgetWardrobeWaistText.appearanceLink = appearanceLink
+				elseif categoryID ==10 then
+					InspectorGadgetWardrobeLegsSlot.itemLink = itemLink
+					InspectorGadgetWardrobeLegsText.appearanceLink = appearanceLink
+				elseif categoryID ==11 then
+					InspectorGadgetWardrobeFeetSlot.itemLink = itemLink
+					InspectorGadgetWardrobeFeetText.appearanceLink = appearanceLink
 				-- 26 Guns
 				-- 14 One-handed swords
 				-- 18 Shields
@@ -256,6 +278,17 @@ function IGWardrobeFrame_UpdateButtons()
 	-- TODO need some work translating all the different weapon types to the right slot
 	-- IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeMainHandSlot);
 	-- IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeSecondaryHandSlot);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeHeadText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeShoulderText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeBackText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeChestText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeShirtText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeTabardText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeWristText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeHandsText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeWaistText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeLegsText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeFeetText);
 
 end
 
@@ -286,6 +319,20 @@ function IGWardrobeItemSlotButton_Update(button)
 		GameTooltip:Hide();
 	end
 end
+
+function IGWardrobeItemTextButton_Update(button)
+	local textureName;
+	if button.appearanceLink then
+		button:SetText(button.appearanceLink)
+		button:Show()
+	else
+		button:Hide()
+	end
+	if ( GameTooltip:IsOwned(button) ) then
+		GameTooltip:Hide();
+	end
+end
+
 
 function IGWardrobe_OnLoad()
 	IGInspectSourcesDump()
