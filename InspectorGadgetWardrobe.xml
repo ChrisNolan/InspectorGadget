@@ -74,6 +74,8 @@
 	<!-- Text Buttons for showing appearance names -->
 	<Button name="InspectorGadgetWardrobeItemTextButtonTemplate" inherits="MagicButtonTemplate, TruncatedButtonTemplate" virtual="true">
 		<Size x="114" y="36"/>
+		<HighlightTexture file="Interface\FriendsFrame\UI-FriendsFrame-HighlightBar-Blue" setAllPoints="true" alphaMode="ADD"/>
+		<NormalTexture file="Interface\CharacterFrame\Char-Stat-Middle" setAllPoints="true" vertTile="true" HorizTile="true"/>
         <Scripts>
             <OnLoad>
 				--InspectorGadgetWardrobeItemSlotButton_OnLoad(self);
@@ -128,7 +130,7 @@
 				<Frames>
 					<Button name="InspectorGadgetWardrobeHeadSlot" inherits="InspectorGadgetWardrobeItemSlotButtonLeftTemplate">
 						<Anchors>
-							<Anchor point="TOPLEFT" relativeTo="InspectFrameInset" x="4" y="-2"/>
+							<Anchor point="TOPLEFT" relativeTo="InspectFrameInset" x="2" y="-4"/>
 						</Anchors>
 					</Button>
 					<Button name="InspectorGadgetWardrobeHeadText" inherits="InspectorGadgetWardrobeItemTextButtonLeftTemplate">
@@ -232,7 +234,7 @@
 					<!-- First of the right hand column -->
 					<Button name="InspectorGadgetWardrobeHandsSlot" inherits="InspectorGadgetWardrobeItemSlotButtonRightTemplate">
 						<Anchors>
-							<Anchor point="TOPRIGHT" relativeTo="InspectFrameInset" x="-4" y="-2"/>
+							<Anchor point="TOPRIGHT" relativeTo="InspectFrameInset" x="-4" y="-4"/>
 						</Anchors>
 					</Button>
 					<Button name="InspectorGadgetWardrobeHandsText" inherits="InspectorGadgetWardrobeItemTextButtonRightTemplate">
