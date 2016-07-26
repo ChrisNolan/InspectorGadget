@@ -6,6 +6,10 @@
 --  * http://wow.curseforge.com/addons/libaboutpanel/
 --  * http://www.wowace.com/addons/ace3/pages/getting-started/
 
+-- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
+--   some other thoughts @ http://www.wowinterface.com/forums/showthread.php?t=39775&highlight=load+demand 
+--   maybe split the wardrobe stuff out into a sub-addon and have it LoadWith the inspect stuff?
+LoadAddOn("Blizzard_InspectUI")
 
 InspectorGadget = CreateFrame("Frame") -- TODO if I have this here, do I need the .xml file?
 local addon = InspectorGadget
@@ -176,6 +180,22 @@ function IGInspectSourcesDump()
 				DEFAULT_CHAT_FRAME:AddMessage(format("%s is item %s (appearance %s)", transmogCategories[categoryID], itemLink, appearanceLink))
 				-- TODO the appearanceLink doesn't seem to work right -- I think it is a wow bug, because when you learn a new appearance it fails too
 				-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
+				-- TODO this is really ugly... iterate it
+				if     categoryID == 1 then InspectorGadgetWardrobeHeadSlot.itemLink = itemLink
+				elseif categoryID == 2 then InspectorGadgetWardrobeShoulderSlot.itemLink = itemLink
+				elseif categoryID == 3 then InspectorGadgetWardrobeBackSlot.itemLink = itemLink
+				elseif categoryID == 4 then InspectorGadgetWardrobeChestSlot.itemLink = itemLink
+				elseif categoryID == 5 then InspectorGadgetWardrobeShirtSlot.itemLink = itemLink
+				elseif categoryID == 6 then InspectorGadgetWardrobeTabardSlot.itemLink = itemLink
+				elseif categoryID == 7 then InspectorGadgetWardrobeWristSlot.itemLink = itemLink
+				elseif categoryID == 8 then InspectorGadgetWardrobeHandsSlot.itemLink = itemLink
+				elseif categoryID == 9 then InspectorGadgetWardrobeWaistSlot.itemLink = itemLink
+				elseif categoryID ==10 then InspectorGadgetWardrobeLegsSlot.itemLink = itemLink
+				elseif categoryID ==11 then InspectorGadgetWardrobeFeetSlot.itemLink = itemLink
+				-- 26 Guns
+				-- 14 One-handed swords
+				-- 18 Shields
+				end
 			end
 		end
 	else
@@ -183,8 +203,93 @@ function IGInspectSourcesDump()
 	end
 end
 
+-- Init the button on the screen
+--   Should be putting icons on the slots in case they are empty... TODO not working atm
+--   Taken from InspectPaperDoll.lua
+function IGWardrobeItemSlotButton_OnLoad(self)
+	--self:RegisterEvent("UNIT_INVENTORY_CHANGED");
+	local slotName = self:GetName();
+	local id;
+	if self.itemLink then
+		local _, itemLink, _, _, _, _, _, _, _, itemTexture, _ = GetItemInfo(self.itemLink)
+		id = GetItemInfoInstant(itemLink)
+		local textureName = itemTexture
+		self:SetID(id);
+		local texture = _G[slotName.."IconTexture"];
+		texture:SetTexture(textureName);
+		self.backgroundTextureName = textureName;
+	end
+end
+
+function IGWardrobeItemSlotButton_OnEnter(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+	local tooltipSet = false
+	if self.itemLink then
+		tooltipSet = GameTooltip:SetHyperlink(self.itemLink)
+		-- I want to catch of hte tooltip doesn't get set, but the flag needs work
+	else
+		local text = _G[strupper(strsub(self:GetName(), 24))]; -- 24 is hardcoded... the length of the object name to strip off the front
+		GameTooltip:SetText(text);
+	end
+	CursorUpdate(self);
+end
+
+function IGWardrobeFrame_UpdateButtons()
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeHeadSlot);
+	-- IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeNeckSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeShoulderSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeBackSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeChestSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeShirtSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeTabardSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeWristSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeHandsSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeWaistSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeLegsSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeFeetSlot);
+--[[
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeFinger0Slot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeFinger1Slot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeTrinket0Slot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeTrinket1Slot);
+]]--
+	-- TODO need some work translating all the different weapon types to the right slot
+	-- IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeMainHandSlot);
+	-- IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeSecondaryHandSlot);
+
+end
+
+function IGWardrobeItemSlotButton_Update(button)
+	local unit = InspectFrame.unit;
+	local textureName;
+	if button.itemLink then
+		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(button.itemLink)
+		local itemID = GetItemInfoInstant(itemLink)
+		textureName = itemTexture -- GetInventoryItemTexture(unit, button:GetID());
+		if ( textureName ) then
+			SetItemButtonTexture(button, textureName);
+			--SetItemButtonCount(button, GetInventoryItemCount(unit, button:GetID()));
+			button.hasItem = 1;
+
+			local quality = itemRarity -- GetInventoryItemQuality(unit, button:GetID());
+			SetItemButtonQuality(button, quality, itemID);
+
+		else
+			local textureName = button.backgroundTextureName;
+			SetItemButtonTexture(button, textureName);
+			SetItemButtonCount(button, 0);
+			button.IconBorder:Hide();
+			button.hasItem = nil;
+		end
+	end
+	if ( GameTooltip:IsOwned(button) ) then
+		GameTooltip:Hide();
+	end
+end
+
 function IGWardrobe_OnLoad()
 	IGInspectSourcesDump()
+	IGWardrobeFrame_UpdateButtons()
 end
 
 -- WIP function to try and understand how the api calls work
@@ -275,6 +380,7 @@ end
 -- Add an extra 'tab' to the bottom of the InspectFrame
 --   very problematic to other addons that also add tabs?
 local function createInspectFrameTab()
+	-- TODO the LoadAddon stuff messed up the highlighting of this this button... come back to check this before commit
 	if not InspectFrameTab5 then
 		INSPECTFRAME_SUBFRAMES[5] = "InspectorGadgetWardrobeFrame";
 		PanelTemplates_SetNumTabs(InspectFrame, 5);
