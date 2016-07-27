@@ -1,4 +1,4 @@
-## Title: InspectorGadget
+## Title: InspectorGadgetzan
 ## Notes: A gadget to improve access to information about players you encounter in the World of Warcraft.  Such as what they are wearing, or which mount they are on.
 ## Author: Hiketeia
 ## X-License: MIT
@@ -11,6 +11,6 @@
 ## X-Category: Transmogrify, Companions
 ## X-Localizations: enUS
 
-InspectorGadget.lua
-InspectorGadget.xml
-InspectorGadgetWardrobe.xml
+InspectorGadgetzan.lua
+InspectorGadgetzan.xml
+InspectorGadgetzanWardrobe.xml

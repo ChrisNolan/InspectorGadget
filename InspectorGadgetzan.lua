@@ -1,4 +1,4 @@
--- InspectorGadget.lua
+-- InspectorGadgetzan.lua
 --   A gadget to improve access to information about players you encounter in the World of Warcraft
 --     Hiketeia-Emerald Dream April 2016
 
@@ -13,8 +13,8 @@ LoadAddOn("Blizzard_InspectUI")
 
 local debugLevel = nil
 
-InspectorGadget = CreateFrame("Frame") -- TODO if I have this here, do I need the .xml file?
-local addon = InspectorGadget
+InspectorGadgetzan = CreateFrame("Frame") -- TODO if I have this here, do I need the .xml file?
+local addon = InspectorGadgetzan
 
 local MountCache={};--  Stores our discovered mounts' spell IDs
 
@@ -34,7 +34,7 @@ local function buildMountCache()
 	end
 end
 
-function InspectorGadget_OnLoad(self)
+function InspectorGadgetzan_OnLoad(self)
 
 end
 
@@ -170,51 +170,51 @@ local function IGInspectSourcesDump()
 				-- TODO this is really ugly... iterate it ... is _G[] what I need?
 				-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
 				if     categoryID == 1 then
-					InspectorGadgetWardrobeHeadSlot.itemLink = itemLink
-					InspectorGadgetWardrobeHeadText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeHeadSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeHeadText.appearanceLink = appearanceLink
 				elseif categoryID == 2 then 
-					InspectorGadgetWardrobeShoulderSlot.itemLink = itemLink
-					InspectorGadgetWardrobeShoulderText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeShoulderSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeShoulderText.appearanceLink = appearanceLink
 				elseif categoryID == 3 then
-					InspectorGadgetWardrobeBackSlot.itemLink = itemLink
-					InspectorGadgetWardrobeBackText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeBackSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeBackText.appearanceLink = appearanceLink
 				elseif categoryID == 4 then
-					InspectorGadgetWardrobeChestSlot.itemLink = itemLink
-					InspectorGadgetWardrobeChestText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeChestSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeChestText.appearanceLink = appearanceLink
 				elseif categoryID == 5 then
-					InspectorGadgetWardrobeShirtSlot.itemLink = itemLink
-					InspectorGadgetWardrobeShirtText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeShirtSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeShirtText.appearanceLink = appearanceLink
 				elseif categoryID == 6 then
-					InspectorGadgetWardrobeTabardSlot.itemLink = itemLink
-					InspectorGadgetWardrobeTabardText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeTabardSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeTabardText.appearanceLink = appearanceLink
 				elseif categoryID == 7 then
-					InspectorGadgetWardrobeWristSlot.itemLink = itemLink
-					InspectorGadgetWardrobeWristText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeWristSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeWristText.appearanceLink = appearanceLink
 				elseif categoryID == 8 then
-					InspectorGadgetWardrobeHandsSlot.itemLink = itemLink
-					InspectorGadgetWardrobeHandsText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeHandsSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeHandsText.appearanceLink = appearanceLink
 				elseif categoryID == 9 then
-					InspectorGadgetWardrobeWaistSlot.itemLink = itemLink
-					InspectorGadgetWardrobeWaistText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeWaistSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeWaistText.appearanceLink = appearanceLink
 				elseif categoryID ==10 then
-					InspectorGadgetWardrobeLegsSlot.itemLink = itemLink
-					InspectorGadgetWardrobeLegsText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeLegsSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeLegsText.appearanceLink = appearanceLink
 				elseif categoryID ==11 then
-					InspectorGadgetWardrobeFeetSlot.itemLink = itemLink
-					InspectorGadgetWardrobeFeetText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeFeetSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeFeetText.appearanceLink = appearanceLink
 				end
 				if (transmogCategories[categoryID].slot == "MainHand") then
 					-- if it already has something in the mainhand, assume it is a dualwielder
-					if InspectorGadgetWardrobeMainHandSlot.itemLink then
-						InspectorGadgetWardrobeSecondaryHandSlot.itemLink = itemLink
-						InspectorGadgetWardrobeSecondaryHandText.appearanceLink = appearanceLink
+					if InspectorGadgetzanWardrobeMainHandSlot.itemLink then
+						InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
+						InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
 					else
-						InspectorGadgetWardrobeMainHandSlot.itemLink = itemLink
-						InspectorGadgetWardrobeMainHandText.appearanceLink = appearanceLink
+						InspectorGadgetzanWardrobeMainHandSlot.itemLink = itemLink
+						InspectorGadgetzanWardrobeMainHandText.appearanceLink = appearanceLink
 					end
 				elseif transmogCategories[categoryID].slot == "SecondaryHand" then
-					InspectorGadgetWardrobeSecondaryHandSlot.itemLink = itemLink
-					InspectorGadgetWardrobeSecondaryHandText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
+					InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
 				end
 			end
 		end
@@ -228,7 +228,7 @@ end
 --   Taken from InspectPaperDoll.lua
 function IGWardrobeItemSlotButton_OnLoad(self)
 	local slotName = self:GetName()
-	slotName = string.gsub(slotName, "InspectorGadgetWardrobe", "Inspect")
+	slotName = string.gsub(slotName, "InspectorGadgetzanWardrobe", "Inspect")
 	local id
 	id, textureName, _ = GetInventorySlotInfo(strsub(slotName,8))
 	self:SetID(id)
@@ -244,7 +244,7 @@ function IGWardrobeItemSlotButton_OnEnter(self)
 		tooltipSet = GameTooltip:SetHyperlink(self.itemLink)
 		-- I want to catch of hte tooltip doesn't get set, but the flag needs work
 	else
-		local text = _G[strupper(strsub(self:GetName(), 24))]; -- 24 is hardcoded... the length of the object name to strip off the front
+		local text = _G[strupper(strsub(self:GetName(), string.len("InspectorGadgetzanWardrobe")+1))];
 		GameTooltip:SetText(text);
 	end
 	CursorUpdate(self);
@@ -268,38 +268,38 @@ end
 
 local function IGWardrobeFrame_UpdateButtons()
 	-- don't like code like this... snazzy it up some day
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeHeadSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeShoulderSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeBackSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeChestSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeShirtSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeTabardSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeWristSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeHandsSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeWaistSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeLegsSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeFeetSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeMainHandSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeSecondaryHandSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeHeadSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeShoulderSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeBackSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeChestSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeShirtSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeTabardSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeWristSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeHandsSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeWaistSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeLegsSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeFeetSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeMainHandSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeSecondaryHandSlot);
 	
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeHeadText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeShoulderText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeBackText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeChestText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeShirtText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeTabardText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeWristText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeHandsText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeWaistText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeLegsText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeFeetText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeMainHandText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeSecondaryHandText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeHeadText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeShoulderText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeBackText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeChestText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeShirtText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeTabardText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeWristText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeHandsText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeWaistText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeLegsText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeFeetText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeMainHandText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeSecondaryHandText);
 	
 	-- Set the mount header info
 	local mount = IGMount(InspectFrame.unit)
 	if mount then
-		local button = InspectorGadgetWardrobeMountMicroButton
+		local button = InspectorGadgetzanWardrobeMountMicroButton
 		local prefix = "Interface\\Buttons\\UI-MicroButton-";
 		local name = 'Mounts'
 		button:SetNormalTexture(prefix..name.."-Up");
@@ -309,11 +309,11 @@ local function IGWardrobeFrame_UpdateButtons()
 		button.tooltipText = "View " .. mount.creatureName .. " in Collections Journal"
 		button.mount = mount
 		button:Show()
-		InspectorGadgetWardrobeMountText:SetText("Currently mounted on " .. mount.creatureName)
-		InspectorGadgetWardrobeMountText:Show()
+		InspectorGadgetzanWardrobeMountText:SetText("Currently mounted on " .. mount.creatureName)
+		InspectorGadgetzanWardrobeMountText:Show()
 	else
-		InspectorGadgetWardrobeMountMicroButton:Hide()
-		InspectorGadgetWardrobeMountText:Hide()
+		InspectorGadgetzanWardrobeMountMicroButton:Hide()
+		InspectorGadgetzanWardrobeMountText:Hide()
 	end
 	
 end
@@ -321,33 +321,33 @@ end
 -- Opposite of UpdateButtons
 local function IGWardrobeFrame_ClearButtons()
 	-- don't like code like this... snazzy it up some day
-	InspectorGadgetWardrobeHeadSlot.itemLink = nil
-	InspectorGadgetWardrobeShoulderSlot.itemLink = nil
-	InspectorGadgetWardrobeBackSlot.itemLink = nil
-	InspectorGadgetWardrobeChestSlot.itemLink = nil
-	InspectorGadgetWardrobeShirtSlot.itemLink = nil
-	InspectorGadgetWardrobeTabardSlot.itemLink = nil
-	InspectorGadgetWardrobeWristSlot.itemLink = nil
-	InspectorGadgetWardrobeHandsSlot.itemLink = nil
-	InspectorGadgetWardrobeWaistSlot.itemLink = nil
-	InspectorGadgetWardrobeLegsSlot.itemLink = nil
-	InspectorGadgetWardrobeFeetSlot.itemLink = nil
-	InspectorGadgetWardrobeMainHandSlot.itemLink = nil
-	InspectorGadgetWardrobeSecondaryHandSlot.itemLink = nil
+	InspectorGadgetzanWardrobeHeadSlot.itemLink = nil
+	InspectorGadgetzanWardrobeShoulderSlot.itemLink = nil
+	InspectorGadgetzanWardrobeBackSlot.itemLink = nil
+	InspectorGadgetzanWardrobeChestSlot.itemLink = nil
+	InspectorGadgetzanWardrobeShirtSlot.itemLink = nil
+	InspectorGadgetzanWardrobeTabardSlot.itemLink = nil
+	InspectorGadgetzanWardrobeWristSlot.itemLink = nil
+	InspectorGadgetzanWardrobeHandsSlot.itemLink = nil
+	InspectorGadgetzanWardrobeWaistSlot.itemLink = nil
+	InspectorGadgetzanWardrobeLegsSlot.itemLink = nil
+	InspectorGadgetzanWardrobeFeetSlot.itemLink = nil
+	InspectorGadgetzanWardrobeMainHandSlot.itemLink = nil
+	InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = nil
 
-	InspectorGadgetWardrobeHeadText.appearanceLink= nil
-	InspectorGadgetWardrobeShoulderText.appearanceLink= nil
-	InspectorGadgetWardrobeBackText.appearanceLink= nil
-	InspectorGadgetWardrobeChestText.appearanceLink= nil
-	InspectorGadgetWardrobeShirtText.appearanceLink= nil
-	InspectorGadgetWardrobeTabardText.appearanceLink= nil
-	InspectorGadgetWardrobeWristText.appearanceLink= nil
-	InspectorGadgetWardrobeHandsText.appearanceLink= nil
-	InspectorGadgetWardrobeWaistText.appearanceLink= nil
-	InspectorGadgetWardrobeLegsText.appearanceLink= nil
-	InspectorGadgetWardrobeFeetText.appearanceLink= nil
-	InspectorGadgetWardrobeMainHandText.appearanceLink= nil
-	InspectorGadgetWardrobeSecondaryHandText.appearanceLink= nil
+	InspectorGadgetzanWardrobeHeadText.appearanceLink= nil
+	InspectorGadgetzanWardrobeShoulderText.appearanceLink= nil
+	InspectorGadgetzanWardrobeBackText.appearanceLink= nil
+	InspectorGadgetzanWardrobeChestText.appearanceLink= nil
+	InspectorGadgetzanWardrobeShirtText.appearanceLink= nil
+	InspectorGadgetzanWardrobeTabardText.appearanceLink= nil
+	InspectorGadgetzanWardrobeWristText.appearanceLink= nil
+	InspectorGadgetzanWardrobeHandsText.appearanceLink= nil
+	InspectorGadgetzanWardrobeWaistText.appearanceLink= nil
+	InspectorGadgetzanWardrobeLegsText.appearanceLink= nil
+	InspectorGadgetzanWardrobeFeetText.appearanceLink= nil
+	InspectorGadgetzanWardrobeMainHandText.appearanceLink= nil
+	InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink= nil
 end
 
 -- Change the ItemSlot to match the links attached to it
@@ -404,7 +404,7 @@ end
 local function createInspectFrameTab()
 	-- TODO the LoadAddon stuff messed up the highlighting of this this button... come back to check this before commit
 	if not InspectFrameTab5 then
-		INSPECTFRAME_SUBFRAMES[5] = "InspectorGadgetWardrobeFrame";
+		INSPECTFRAME_SUBFRAMES[5] = "InspectorGadgetzanWardrobeFrame";
 		PanelTemplates_SetNumTabs(InspectFrame, 5);
 		InspectFrameTab5 = CreateFrame("Button", "InspectFrameTab5", InspectFrame, "CharacterFrameTabButtonTemplate")
 		InspectFrameTab5:SetID(5)
@@ -478,8 +478,8 @@ local function DispatchCommand(message, commandTable)
 end
 
 -- Registering slash commands
-SLASH_INSPECTORGADGET1 = "/inspectorgadget"
-SLASH_INSPECTORGADGET2 = "/ig"
-SlashCmdList["INSPECTORGADGET"] = function(message)
+SLASH_INSPECTORGADGETZAN1 = "/inspectorgadgetzan"
+SLASH_INSPECTORGADGETZAN2 = "/ig"
+SlashCmdList["INSPECTORGADGETZAN"] = function(message)
 	DispatchCommand(message, IGCommandTable)
 end
