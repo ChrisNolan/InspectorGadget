@@ -66,8 +66,10 @@ function IGMount(unit)
 end
 
 -- What mount is that person on?  Pop mount journal, and also give you the icon if you have it to place on your bar
-function IGMount_Report()
-	local mount = IGMount("playertarget")
+function IGMount_Report(mount)
+	if mount == nil then
+		mount = IGMount("playertarget")
+	end
 	if mount then
 		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		C_MountJournal.Pickup(mount.index)
@@ -383,6 +385,24 @@ function IGWardrobe_OnLoad()
 	IGWardrobeFrame_ClearSlots()
 	IGInspectSourcesDump()
 	IGWardrobeFrame_UpdateButtons()
+	local mount = IGMount(InspectFrame.unit)
+	if mount then
+		local button = InspectorGadgetWardrobeMountMicroButton
+		local prefix = "Interface\\Buttons\\UI-MicroButton-";
+		local name = 'Mounts'
+		button:SetNormalTexture(prefix..name.."-Up");
+		button:SetPushedTexture(prefix..name.."-Down");
+		button:SetDisabledTexture(prefix..name.."-Disabled");
+		button:SetHighlightTexture("Interface\\Buttons\\UI-MicroButton-Hilight")
+		button.tooltipText = "View " .. mount.creatureName .. " in Collections Journal"
+		button.mount = mount
+		button:Show()
+		InspectorGadgetWardrobeMountText:SetText("Currently mounted on " .. mount.creatureName)
+		InspectorGadgetWardrobeMountText:Show()
+	else
+		InspectorGadgetWardrobeMountMicroButton:Hide()
+		InspectorGadgetWardrobeMountText:Hide()
+	end
 end
 
 -- WIP function to try and understand how the api calls work

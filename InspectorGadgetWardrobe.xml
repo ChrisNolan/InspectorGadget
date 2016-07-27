@@ -1,7 +1,8 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\..\FrameXML\UI.xsd">
-	    <Button name="InspectorGadgetWardrobeItemSlotButtonTemplate" inherits="ItemButtonTemplate" virtual="true">
-        <Scripts>
+	<!-- Slot buttons to show the appearances icons -->
+	<Button name="InspectorGadgetWardrobeItemSlotButtonTemplate" inherits="ItemButtonTemplate" virtual="true">
+		<Scripts>
             <OnLoad>
 				IGWardrobeItemSlotButton_OnLoad(self);
 			</OnLoad>
@@ -125,9 +126,83 @@
 	</Button>
 	<!-- Main Frame for wardrobe tab -->
 	<Frame name="InspectorGadgetWardrobeFrame" enableMouse="true" parent="InspectFrame" hidden="true" useParentLevel="true" setAllPoints="true" id="2">
+        <Layers>
+            <Layer level="OVERLAY">
+                <FontString name="InspectorGadgetWardrobeHeaderText" inherits="GameFontNormal" text="Transmogrification Appearances">
+                    <Anchors>
+                        <Anchor point="TOP">
+                            <Offset>
+                                <AbsDimension x="0" y="-27"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                <FontString name="InspectorGadgetWardrobeMountText" inherits="GameFontNormalSmall" text="Currently mounted on ..." hidden="false">
+                    <Anchors>
+                        <Anchor point="TOP" relativeTo="InspectorGadgetWardrobeHeaderText" relativePoint="BOTTOM">
+                            <Offset>
+                                <AbsDimension x="0" y="-3"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+				<!-- TODO put a background texture on here, or remove the below if not -->
+				<Texture name="InspectorGadgetWardrobeFaction" file="Interface\Timer\Panda-Logo" hidden="true">
+					<Size x="256" y="256"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="-10"/>
+					</Anchors>
+					<TexCoords left="0" right="1" top="0" bottom="1"/>	
+				</Texture>
+            </Layer>
+		</Layers>
 		<Frames>
+			<!-- Frame for all the item icons and appearance names -->
 			<Frame name="InspectorGadgetWardrobeItemsFrame" setAllPoints="true">
 				<Frames>
+					<!-- Micro button for mount icon taken from  BlizzardInterfaceCode/Interface/FrameXML/MainMenuBarMicroButtons.xml -->
+					<Button name="InspectorGadgetWardrobeMountMicroButton" motionScriptsWhileDisabled="true">
+						<Size>
+							<AbsDimension x="28" y="58"/>
+						</Size>
+						<Anchors>
+							<Anchor point="TOPRIGHT" relativeTo="InspectFrameInset" relativePoint="TOPRIGHT">
+								<Offset>
+									<AbsDimension x="-4" y="56"/>
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<HitRectInsets>
+							<AbsInset left="0" right="0" top="18" bottom="0"/>
+						</HitRectInsets>
+						<Layers>
+							<Layer level="OVERLAY">
+								<Texture name="$parentFlash" file="Interface\Buttons\Micro-Highlight" alphaMode="ADD" parentKey="Flash" hidden="true">
+									<Size x="64" y="64"/>
+									<Anchors>
+										<Anchor point="TOPLEFT" x="-2" y="-18"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
+						<Scripts>
+							<OnEnter>
+								MicroButton_OnEnter(self);
+							</OnEnter>
+							<OnClick>
+								IGMount_Report(self.mount)
+							</OnClick>
+							<OnEnable>
+								self:SetAlpha(1);
+							</OnEnable>
+							<OnDisable>
+								self:SetAlpha(0.5);
+							</OnDisable>
+							<OnLeave>
+								GameTooltip:Hide();
+							</OnLeave>
+						</Scripts>
+					</Button>
 					<Button name="InspectorGadgetWardrobeHeadSlot" inherits="InspectorGadgetWardrobeItemSlotButtonLeftTemplate">
 						<Anchors>
 							<Anchor point="TOPLEFT" relativeTo="InspectFrameInset" x="2" y="-4"/>
