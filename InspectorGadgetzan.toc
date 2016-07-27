@@ -1,5 +1,5 @@
-## Title: InspectorGadgetzan
-## Notes: A gadget to improve access to information about players you encounter in the World of Warcraft.  Such as what they are wearing, or which mount they are on.
+## Title: Inspector|c2E0AFFFFGadgetzan|r
+## Notes: Inspect another's Wardrobe Appearances and current Mount.  What else is up his sleave?
 ## Author: Hiketeia
 ## X-License: MIT
 
