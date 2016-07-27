@@ -1,5 +1,5 @@
 ## Title: Inspector|c2E0AFFFFGadgetzan|r
-## Notes: Inspect another's Wardrobe Appearances and current Mount.  What else is up his sleave?
+## Notes: Inspect another's Wardrobe Appearances and current Mount.  What else is in his hat?
 ## Author: Hiketeia
 ## X-License: MIT
 

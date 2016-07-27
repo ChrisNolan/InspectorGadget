@@ -1,5 +1,5 @@
 # InspectorGadgetzan
-Inspect another's Wardrobe Appearances and current Mount.  What else is up his sleave?
+Inspect another's Wardrobe Appearances and current Mount.  What else is in his hat?
 
 Take the hassle out of inspecting someone's **transmog**!
 Quickly know (and clone) what **mount** someone is using!
@@ -20,6 +20,13 @@ Inspector Gadgetzan gives you a few slash commands to use as well to help with y
 * `/ig inspect` - inspect the target and jump to the Inspect Gadgetzan tab directly*
 
 ## Development
+### Where to find the AddOn
+
+* https://github.com/ChrisNolan/InspectorGadgetzan - Main development site
+* https://mods.curse.com/addons/wow/inspectorgadgetzan
+* http://wow.curseforge.com/addons/inspectorgadgetzan/
+* http://www.wowinterface.com/downloads/info24082-InspectorGadgetzan.html
+
 ### Known Issues
 
 * timing issue with /ig inspect 
