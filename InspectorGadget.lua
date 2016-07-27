@@ -11,6 +11,8 @@
 --   maybe split the wardrobe stuff out into a sub-addon and have it LoadWith the inspect stuff?
 LoadAddOn("Blizzard_InspectUI")
 
+local debugLevel = nil
+
 InspectorGadget = CreateFrame("Frame") -- TODO if I have this here, do I need the .xml file?
 local addon = InspectorGadget
 
@@ -28,9 +30,9 @@ local function buildMountCache()
 			};
 		end
 		-- TODO manually add class specific mounts that aren't in everyone's journal?  Like "Felsteed"
+		--   Mounts that have trouble ATM: Ancient Frostsabre
 	end
 end
-
 
 function InspectorGadget_OnLoad(self)
 
@@ -115,26 +117,8 @@ function IGInspect_Show()
 	if (UnitPlayerControlled("target") and CheckInteractDistance("target", 1) and not UnitIsUnit("player", "target")) then
 		InspectUnit("target")
 		-- TODO how do I get the INSPECT_READY event here?  do a RegisterEvent?
-	end
-end
-
--- WIP function to try and understand how the api calls work
---  ATM this only works for myself, and not other person.  Started thread @ http://www.wowinterface.com/forums/showthread.php?p=314771#post314771 to see if I'm missing something
-function IGInspectTransmogDump()
-	transmogSlots = { InspectHeadSlot, InspectShoulderSlot, InspectBackSlot, InspectChestSlot, InspectWristSlot, InspectHandsSlot, InspectWaistSlot, InspectLegsSlot, InspectFeetSlot, InspectMainHandSlot, InspectSecondaryHandSlot }
-
-	unit = "player"
-
-	for i, slot in ipairs(transmogSlots) do
-	   slotId = slot:GetID()
-	   local isTransmogrified, canTransmogrify, cannotTransmogrifyReason, hasPending, hasUndo, visibleItemID, textureName = GetTransmogrifySlotInfo(slotId)
-	   if isTransmogrified then
-		  local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(visibleItemID)
-		  local itemId = GetInventoryItemID(unit, slotId)
-		  -- local itemLink = GetInventoryItemLink(unit, )
-		  DEFAULT_CHAT_FRAME:AddMessage(format("Slot %s is transmogrified to %s. %s", slotId, link, itemId))
-	   end
-	   
+		IGWardrobe_OnLoad()
+		InspectFrameTab_OnClick(InspectFrameTab5)
 	end
 end
 
@@ -168,20 +152,21 @@ transmogCategories[26] = {name = "Guns", slot = "MainHand"};
 transmogCategories[27] = {name = "Crossbows", slot = "MainHand"};
 transmogCategories[28] = {name = "Warglaives", slot = "MainHand"};
 
--- Dumps a full list of the inspected unit's appearances to the chat framexml/19831/PaperDollFrame 
--- TODO make a pretty window, like the paperdoll frame showing the item icons etc.
-function IGInspectSourcesDump()
-	-- need to be inspecting someone already?
+-- Moves the inspect sources into the buttons and text fields 
+--   if debugLevel is set, it'll also dump them to the chat
+local function IGInspectSourcesDump()
+
 	appearanceSources = C_TransmogCollection.GetInspectSources()
 
 	if appearanceSources then
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Appearances Dump")
+		if debugLevel then DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Appearances Dump") end
 		for i = 1, #appearanceSources do
 			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
 				categoryID , appearanceID, unknownBoolean1, uiOrder, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
-				DEFAULT_CHAT_FRAME:AddMessage(format("%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink))
-				-- TODO the appearanceLink doesn't seem to work right -- I think it is a wow bug, because when you learn a new appearance it fails too ugh, I had a filter on and that's why it wasn't showing...
-				-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
+				if debugLevel then
+					DEFAULT_CHAT_FRAME:AddMessage(format("%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink))
+					-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
+				end
 				-- TODO this is really ugly... iterate it ... is _G[] what I need?
 				-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
 				if     categoryID == 1 then
@@ -251,6 +236,7 @@ function IGWardrobeItemSlotButton_OnLoad(self)
 	self.backgroundTextureName = textureName
 end
 
+-- Deals with Tooltips when you mouse over an ItemSlot
 function IGWardrobeItemSlotButton_OnEnter(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
 	local tooltipSet = false
@@ -264,6 +250,7 @@ function IGWardrobeItemSlotButton_OnEnter(self)
 	CursorUpdate(self);
 end
 
+-- Click handler to launch the wardrobe collection window
 function IGWardrobeItemTextButton_OnClick(self)
 	-- code from FrameXML/ItemRef.lua's "transmogappearance" handler
 	if ( not CollectionsJournal ) then
@@ -279,7 +266,8 @@ function IGWardrobeItemTextButton_OnClick(self)
 	end
 end
 
-function IGWardrobeFrame_UpdateButtons()
+local function IGWardrobeFrame_UpdateButtons()
+	-- don't like code like this... snazzy it up some day
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeHeadSlot);
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeShoulderSlot);
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeBackSlot);
@@ -307,47 +295,32 @@ function IGWardrobeFrame_UpdateButtons()
 	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeFeetText);
 	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeMainHandText);
 	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeSecondaryHandText);
-
-end
-
-function IGWardrobeItemSlotButton_Update(button)
-	local unit = InspectFrame.unit;
-	local textureName;
-	if button.itemLink then
-		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(button.itemLink)
-		local itemID = GetItemInfoInstant(itemLink)
-		textureName = itemTexture
-	end
-	if ( textureName ) then
-		SetItemButtonTexture(button, textureName);
-		button.hasItem = 1;
-		SetItemButtonQuality(button, itemRarity, itemID);
-	else
-		textureName = button.backgroundTextureName;
-		SetItemButtonTexture(button, textureName);
-		SetItemButtonCount(button, 0);
-		button.IconBorder:Hide();
-		button.hasItem = nil;
-	end
-	if ( GameTooltip:IsOwned(button) ) then
-		GameTooltip:Hide();
-	end
-end
-
-function IGWardrobeItemTextButton_Update(button)
-	local textureName;
-	if button.appearanceLink then
-		button:SetText(button.appearanceLink)
+	
+	-- Set the mount header info
+	local mount = IGMount(InspectFrame.unit)
+	if mount then
+		local button = InspectorGadgetWardrobeMountMicroButton
+		local prefix = "Interface\\Buttons\\UI-MicroButton-";
+		local name = 'Mounts'
+		button:SetNormalTexture(prefix..name.."-Up");
+		button:SetPushedTexture(prefix..name.."-Down");
+		button:SetDisabledTexture(prefix..name.."-Disabled");
+		button:SetHighlightTexture("Interface\\Buttons\\UI-MicroButton-Hilight")
+		button.tooltipText = "View " .. mount.creatureName .. " in Collections Journal"
+		button.mount = mount
 		button:Show()
+		InspectorGadgetWardrobeMountText:SetText("Currently mounted on " .. mount.creatureName)
+		InspectorGadgetWardrobeMountText:Show()
 	else
-		button:Hide()
+		InspectorGadgetWardrobeMountMicroButton:Hide()
+		InspectorGadgetWardrobeMountText:Hide()
 	end
-	if ( GameTooltip:IsOwned(button) ) then
-		GameTooltip:Hide();
-	end
+	
 end
 
-function IGWardrobeFrame_ClearSlots()
+-- Opposite of UpdateButtons
+local function IGWardrobeFrame_ClearButtons()
+	-- don't like code like this... snazzy it up some day
 	InspectorGadgetWardrobeHeadSlot.itemLink = nil
 	InspectorGadgetWardrobeShoulderSlot.itemLink = nil
 	InspectorGadgetWardrobeBackSlot.itemLink = nil
@@ -375,144 +348,55 @@ function IGWardrobeFrame_ClearSlots()
 	InspectorGadgetWardrobeFeetText.appearanceLink= nil
 	InspectorGadgetWardrobeMainHandText.appearanceLink= nil
 	InspectorGadgetWardrobeSecondaryHandText.appearanceLink= nil
-
 end
 
+-- Change the ItemSlot to match the links attached to it
+function IGWardrobeItemSlotButton_Update(button)
+	local unit = InspectFrame.unit;
+	local textureName;
+	if button.itemLink then
+		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(button.itemLink)
+		local itemID = GetItemInfoInstant(itemLink)
+		textureName = itemTexture
+	end
+	if ( textureName ) then
+		SetItemButtonTexture(button, textureName);
+		button.hasItem = 1;
+		SetItemButtonQuality(button, itemRarity, itemID);
+	else
+		textureName = button.backgroundTextureName;
+		SetItemButtonTexture(button, textureName);
+		SetItemButtonCount(button, 0);
+		button.IconBorder:Hide();
+		button.hasItem = nil;
+	end
+	if ( GameTooltip:IsOwned(button) ) then
+		GameTooltip:Hide();
+	end
+end
+
+-- Change the ItemText to match the links attached to it
+function IGWardrobeItemTextButton_Update(button)
+	local textureName;
+	if button.appearanceLink then
+		button:SetText(button.appearanceLink)
+		button:Show()
+	else
+		button:Hide()
+	end
+	if ( GameTooltip:IsOwned(button) ) then
+		GameTooltip:Hide();
+	end
+end
+
+-- OnLoad of the Inspect tab
 function IGWardrobe_OnLoad()
 	if ( not CollectionsJournal ) then
 		CollectionsJournal_LoadUI();
 	end
-	IGWardrobeFrame_ClearSlots()
+	IGWardrobeFrame_ClearButtons()
 	IGInspectSourcesDump()
 	IGWardrobeFrame_UpdateButtons()
-	local mount = IGMount(InspectFrame.unit)
-	if mount then
-		local button = InspectorGadgetWardrobeMountMicroButton
-		local prefix = "Interface\\Buttons\\UI-MicroButton-";
-		local name = 'Mounts'
-		button:SetNormalTexture(prefix..name.."-Up");
-		button:SetPushedTexture(prefix..name.."-Down");
-		button:SetDisabledTexture(prefix..name.."-Disabled");
-		button:SetHighlightTexture("Interface\\Buttons\\UI-MicroButton-Hilight")
-		button.tooltipText = "View " .. mount.creatureName .. " in Collections Journal"
-		button.mount = mount
-		button:Show()
-		InspectorGadgetWardrobeMountText:SetText("Currently mounted on " .. mount.creatureName)
-		InspectorGadgetWardrobeMountText:Show()
-	else
-		InspectorGadgetWardrobeMountMicroButton:Hide()
-		InspectorGadgetWardrobeMountText:Hide()
-	end
-end
-
--- WIP function to try and understand how the api calls work
---  ATM this only works for myself, and not other person.  Started thread @ http://www.wowinterface.com/forums/showthread.php?p=314771#post314771 to see if I'm missing something
-function IGInspectTransmogDumpv2()
-	CreateFrame( "GameTooltip", "MyScanningTooltip", nil, "GameTooltipTemplate" ); -- Tooltip name cannot be nil
-
-	local function ScanTooltipOfUnitSlotForTransmog(unit,slot)
-	   local tooltip = MyScanningTooltip
-	   local isTransmogrified = false
-	   local itemName = nil
-	   tooltip:SetOwner( WorldFrame, "ANCHOR_NONE" ); -- does a ClearLines() already
-	   tooltip:SetInventoryItem(unit,slot)
-	   for i=1,MyScanningTooltip:NumLines() do
-		  local left = _G["MyScanningTooltipTextLeft"..i]:GetText()
-		  if left then
-			 if isTransmogrified then
-				-- The line after the Transmog header has been found will be the name
-				-- might have to parse Illusion: Hidden
-				itemName = left
-				break -- return isTransmogrified, itemName
-			 end
-			 
-			 if left == "Transmogrified to:" then -- Deal with localization - any better patterns to match?
-				isTransmogrified = true
-			 end
-		  end
-	   end
-	   return isTransmogrified, itemName
-	end
-
-	transmogSlots = { InspectHeadSlot, InspectShoulderSlot, InspectBackSlot, InspectChestSlot, InspectWristSlot, InspectHandsSlot, InspectWaistSlot, InspectLegsSlot, InspectFeetSlot, InspectMainHandSlot, InspectSecondaryHandSlot }
-
-	-- Inspect the target manually before you try unless you've targetted yourself
-	unit = "playertarget"
-
-	for i, slot in ipairs(transmogSlots) do
-	   slotId = slot:GetID()
-	   
-	   local isTransmogrified, itemName = ScanTooltipOfUnitSlotForTransmog(unit,slotId)
-	   if isTransmogrified then
-		  local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemName)
-		  if link then
-			 -- Can't call by itemName unless I have it in my bags... ugh!
-			 print (format("Slot %s is transmogrified to %s.", slotId, link))
-		  else
-			 print (format("Slot %s is transmogrified to %s", slotId, itemName))
-		  end
-	   end
-	end
-end
-
--- playing around... should probably fork this if I don't finish it tonight?
--- https://github.com/tomrus88/BlizzardInterfaceCode/blob/8d22f338783f1a9722552e662904c3c0eaf46d75/Interface/FrameXML/DressUpFrames.lua
-
-local function MessingAround1()
-	-- storing stuff I'm tossing into wowlua trying to get a handle on the un-documented features.
-	local dressUpModel = CreateFrame('DressUpModel')
-	DressUpSources(C_TransmogCollection.GetInspectSources())
-	DressUpModel:TryOn(9610)
-	print(DressUpModel:GetSlotTransmogSources(1))
-	print(DressUpModel:GetSlotTransmogSources(3))
-	
-	print(C_TransmogCollection.GetAppearanceSourceInfo(9610))
-	
-	print(C_TransmogCollection.GetAppearanceSourceInfo(30469))
-	
-	appearanceSources = C_TransmogCollection.GetInspectSources()
-
-	print("   ")
-
-	for i = 1, #appearanceSources do
-		if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
-			-- DressUpModel:TryOn(appearanceSources[i]);
-			print(C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i]))
-		end
-	end
-
-print(" ")
-print(C_TransmogCollection.GetAppearanceSourceInfo(9610))
-print("Sources: ")
-tprint(C_TransmogCollection.GetAppearanceSources(9610)) -- appearanceID returns a table of sourceType, name, isCollected, sourceID, quality
-print("Appearance Info: ")
-tprint(C_TransmogCollection.GetAppearanceInfoBySource(20754)) -- sourceID
-
-	link = "|cffff80ff|Htransmogappearance:33287|h[Rifle Commander's Eyepatch]|h|r"
-	_, sourceID = strsplit(":", link);
-	print(sourceID)
-	sourceID=tonumber(sourceID)
-	print(sourceID)
-	
-link = "|cffff80ff|Htransmogappearance:33287|h[Rifle Commander's Eyepatch]|h|r"
-_, sourceID = strsplit(":", link);
-print(sourceID)
-sourceID=tonumber(sourceID)
-print(sourceID)
-fixedlink = GetFixedLink(link)
-printable = gsub(fixedlink, "\124", "\124\124");
-print(printable)
-linkString = string.match(link, "transmogappearance[%-?%d:]+")
-print(linkString)
-
-CollectionsJournal_LoadUI();
-for i = 1, 11 do
-   slot = WardrobeCollectionFrame_GetSlotFromCategoryID(i)
-   slotg = _G[slot]
-   print(format("%s %s %s.", i, slot, slotg))
-end
-
-
 end
 
 -- Add an extra 'tab' to the bottom of the InspectFrame
@@ -598,20 +482,4 @@ SLASH_INSPECTORGADGET1 = "/inspectorgadget"
 SLASH_INSPECTORGADGET2 = "/ig"
 SlashCmdList["INSPECTORGADGET"] = function(message)
 	DispatchCommand(message, IGCommandTable)
-end
-
--- a table print function i took from some website to help me learn more about the results in wowlua ... 
-local function tprint (tbl, indent)
-  if not indent then indent = 0 end
-  for k, v in pairs(tbl) do
-    formatting = string.rep("  ", indent) .. k .. ": "
-    if type(v) == "table" then
-      print(formatting)
-      tprint(v, indent+1)
-    elseif type(v) == 'boolean' then
-      print(formatting .. tostring(v))      
-    else
-      print(formatting .. v)
-    end
-  end
 end
