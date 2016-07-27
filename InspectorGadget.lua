@@ -137,34 +137,34 @@ function IGInspectTransmogDump()
 end
 
 local transmogCategories = {}
-transmogCategories[1] = "Head";
-transmogCategories[2] = "Shoulder";
-transmogCategories[3] = "Back";
-transmogCategories[4] = "Chest";
-transmogCategories[5] = "Shirt";
-transmogCategories[6] = "Tabard";
-transmogCategories[7] = "Wrist";
-transmogCategories[8] = "Hands";
-transmogCategories[9] = "Waist";
-transmogCategories[10] = "Legs";
-transmogCategories[11] = "Feet";
-transmogCategories[12] = "Wand";
-transmogCategories[13] = "One-Handed Axes";
-transmogCategories[14] = "One-Handed Swords";
-transmogCategories[15] = "One-Handed Maces";
-transmogCategories[16] = "Daggers";
-transmogCategories[17] = "Fist Weapons";
-transmogCategories[18] = "Shields";
-transmogCategories[19] = "Held In Off-hand";
-transmogCategories[20] = "Two-Handed Axes";
-transmogCategories[21] = "Two-Handed Swords";
-transmogCategories[22] = "Two-Handed Maces";
-transmogCategories[23] = "Staves";
-transmogCategories[24] = "Polearms";
-transmogCategories[25] = "Bows";
-transmogCategories[26] = "Guns";
-transmogCategories[27] = "Crossbows";
-transmogCategories[28] = "Warglaives";
+transmogCategories[1] = {name = "Head", slot = "Head"};
+transmogCategories[2] = {name = "Shoulder", slot = "Shoulder"};
+transmogCategories[3] = {name = "Back", slot = "Back"};
+transmogCategories[4] = {name = "Chest", slot = "Chest"};
+transmogCategories[5] = {name = "Shirt", slot = "Shirt"};
+transmogCategories[6] = {name = "Tabard", slot = "Tabard"};
+transmogCategories[7] = {name = "Wrist", slot = "Wrist"};
+transmogCategories[8] = {name = "Hands", slot = "Hands"};
+transmogCategories[9] = {name = "Waist", slot = "Waist"};
+transmogCategories[10] = {name = "Legs", slot = "Legs"};
+transmogCategories[11] = {name = "Feet", slot = "Feet"};
+transmogCategories[12] = {name = "Wand", slot = "MainHand"};
+transmogCategories[13] = {name = "One-Handed Axes", slot = "MainHand"};
+transmogCategories[14] = {name = "One-Handed Swords", slot = "MainHand"};
+transmogCategories[15] = {name = "One-Handed Maces", slot = "MainHand"};
+transmogCategories[16] = {name = "Daggers", slot = "MainHand"};
+transmogCategories[17] = {name = "Fist Weapons", slot = "MainHand"};
+transmogCategories[18] = {name = "Shields", slot = "SecondaryHand"};
+transmogCategories[19] = {name = "Held In Off-hand", slot = "SecondaryHand"};
+transmogCategories[20] = {name = "Two-Handed Axes", slot = "MainHand"};
+transmogCategories[21] = {name = "Two-Handed Swords", slot = "MainHand"};
+transmogCategories[22] = {name = "Two-Handed Maces", slot = "MainHand"};
+transmogCategories[23] = {name = "Staves", slot = "MainHand"};
+transmogCategories[24] = {name = "Polearms", slot = "MainHand"};
+transmogCategories[25] = {name = "Bows", slot = "MainHand"};
+transmogCategories[26] = {name = "Guns", slot = "MainHand"};
+transmogCategories[27] = {name = "Crossbows", slot = "MainHand"};
+transmogCategories[28] = {name = "Warglaives", slot = "MainHand"};
 
 -- Dumps a full list of the inspected unit's appearances to the chat framexml/19831/PaperDollFrame 
 -- TODO make a pretty window, like the paperdoll frame showing the item icons etc.
@@ -177,11 +177,11 @@ function IGInspectSourcesDump()
 		for i = 1, #appearanceSources do
 			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
 				categoryID , appearanceID, unknownBoolean1, uiOrder, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
-				DEFAULT_CHAT_FRAME:AddMessage(format("%s is item %s (appearance %s)", transmogCategories[categoryID], itemLink, appearanceLink))
-				-- TODO the appearanceLink doesn't seem to work right -- I think it is a wow bug, because when you learn a new appearance it fails too
+				DEFAULT_CHAT_FRAME:AddMessage(format("%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink))
+				-- TODO the appearanceLink doesn't seem to work right -- I think it is a wow bug, because when you learn a new appearance it fails too ugh, I had a filter on and that's why it wasn't showing...
 				-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
-				-- TODO this is really ugly... iterate it
-				--   consider local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID);
+				-- TODO this is really ugly... iterate it ... is _G[] what I need?
+				-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
 				if     categoryID == 1 then
 					InspectorGadgetWardrobeHeadSlot.itemLink = itemLink
 					InspectorGadgetWardrobeHeadText.appearanceLink = appearanceLink
@@ -215,9 +215,19 @@ function IGInspectSourcesDump()
 				elseif categoryID ==11 then
 					InspectorGadgetWardrobeFeetSlot.itemLink = itemLink
 					InspectorGadgetWardrobeFeetText.appearanceLink = appearanceLink
-				-- 26 Guns
-				-- 14 One-handed swords
-				-- 18 Shields
+				end
+				if (transmogCategories[categoryID].slot == "MainHand") then
+					-- if it already has something in the mainhand, assume it is a dualwielder
+					if InspectorGadgetWardrobeMainHandSlot.itemLink then
+						InspectorGadgetWardrobeSecondaryHandSlot.itemLink = itemLink
+						InspectorGadgetWardrobeSecondaryHandText.appearanceLink = appearanceLink
+					else
+						InspectorGadgetWardrobeMainHandSlot.itemLink = itemLink
+						InspectorGadgetWardrobeMainHandText.appearanceLink = appearanceLink
+					end
+				elseif transmogCategories[categoryID].slot == "SecondaryHand" then
+					InspectorGadgetWardrobeSecondaryHandSlot.itemLink = itemLink
+					InspectorGadgetWardrobeSecondaryHandText.appearanceLink = appearanceLink
 				end
 			end
 		end
@@ -227,21 +237,16 @@ function IGInspectSourcesDump()
 end
 
 -- Init the button on the screen
---   Should be putting icons on the slots in case they are empty... TODO not working atm
+--   Putting icons on the empty slots
 --   Taken from InspectPaperDoll.lua
 function IGWardrobeItemSlotButton_OnLoad(self)
-	--self:RegisterEvent("UNIT_INVENTORY_CHANGED");
-	local slotName = self:GetName();
-	local id;
-	if self.itemLink then
-		local _, itemLink, _, _, _, _, _, _, _, itemTexture, _ = GetItemInfo(self.itemLink)
-		id = GetItemInfoInstant(itemLink)
-		local textureName = itemTexture
-		self:SetID(id);
-		local texture = _G[slotName.."IconTexture"];
-		texture:SetTexture(textureName);
-		self.backgroundTextureName = textureName;
-	end
+	local slotName = self:GetName()
+	slotName = string.gsub(slotName, "InspectorGadgetWardrobe", "Inspect")
+	local id
+	id, textureName, _ = GetInventorySlotInfo(strsub(slotName,8))
+	self:SetID(id)
+	SetItemButtonTexture(self, textureName)
+	self.backgroundTextureName = textureName
 end
 
 function IGWardrobeItemSlotButton_OnEnter(self)
@@ -274,7 +279,6 @@ end
 
 function IGWardrobeFrame_UpdateButtons()
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeHeadSlot);
-	-- IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeNeckSlot);
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeShoulderSlot);
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeBackSlot);
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeChestSlot);
@@ -285,15 +289,9 @@ function IGWardrobeFrame_UpdateButtons()
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeWaistSlot);
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeLegsSlot);
 	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeFeetSlot);
---[[
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeFinger0Slot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeFinger1Slot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeTrinket0Slot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeTrinket1Slot);
-]]--
-	-- TODO need some work translating all the different weapon types to the right slot
-	-- IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeMainHandSlot);
-	-- IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeSecondaryHandSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeMainHandSlot);
+	IGWardrobeItemSlotButton_Update(InspectorGadgetWardrobeSecondaryHandSlot);
+	
 	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeHeadText);
 	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeShoulderText);
 	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeBackText);
@@ -305,6 +303,8 @@ function IGWardrobeFrame_UpdateButtons()
 	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeWaistText);
 	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeLegsText);
 	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeFeetText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeMainHandText);
+	IGWardrobeItemTextButton_Update(InspectorGadgetWardrobeSecondaryHandText);
 
 end
 
@@ -314,22 +314,18 @@ function IGWardrobeItemSlotButton_Update(button)
 	if button.itemLink then
 		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(button.itemLink)
 		local itemID = GetItemInfoInstant(itemLink)
-		textureName = itemTexture -- GetInventoryItemTexture(unit, button:GetID());
-		if ( textureName ) then
-			SetItemButtonTexture(button, textureName);
-			--SetItemButtonCount(button, GetInventoryItemCount(unit, button:GetID()));
-			button.hasItem = 1;
-
-			local quality = itemRarity -- GetInventoryItemQuality(unit, button:GetID());
-			SetItemButtonQuality(button, quality, itemID);
-
-		else
-			local textureName = button.backgroundTextureName;
-			SetItemButtonTexture(button, textureName);
-			SetItemButtonCount(button, 0);
-			button.IconBorder:Hide();
-			button.hasItem = nil;
-		end
+		textureName = itemTexture
+	end
+	if ( textureName ) then
+		SetItemButtonTexture(button, textureName);
+		button.hasItem = 1;
+		SetItemButtonQuality(button, itemRarity, itemID);
+	else
+		textureName = button.backgroundTextureName;
+		SetItemButtonTexture(button, textureName);
+		SetItemButtonCount(button, 0);
+		button.IconBorder:Hide();
+		button.hasItem = nil;
 	end
 	if ( GameTooltip:IsOwned(button) ) then
 		GameTooltip:Hide();
@@ -349,8 +345,42 @@ function IGWardrobeItemTextButton_Update(button)
 	end
 end
 
+function IGWardrobeFrame_ClearSlots()
+	InspectorGadgetWardrobeHeadSlot.itemLink = nil
+	InspectorGadgetWardrobeShoulderSlot.itemLink = nil
+	InspectorGadgetWardrobeBackSlot.itemLink = nil
+	InspectorGadgetWardrobeChestSlot.itemLink = nil
+	InspectorGadgetWardrobeShirtSlot.itemLink = nil
+	InspectorGadgetWardrobeTabardSlot.itemLink = nil
+	InspectorGadgetWardrobeWristSlot.itemLink = nil
+	InspectorGadgetWardrobeHandsSlot.itemLink = nil
+	InspectorGadgetWardrobeWaistSlot.itemLink = nil
+	InspectorGadgetWardrobeLegsSlot.itemLink = nil
+	InspectorGadgetWardrobeFeetSlot.itemLink = nil
+	InspectorGadgetWardrobeMainHandSlot.itemLink = nil
+	InspectorGadgetWardrobeSecondaryHandSlot.itemLink = nil
+
+	InspectorGadgetWardrobeHeadText.appearanceLink= nil
+	InspectorGadgetWardrobeShoulderText.appearanceLink= nil
+	InspectorGadgetWardrobeBackText.appearanceLink= nil
+	InspectorGadgetWardrobeChestText.appearanceLink= nil
+	InspectorGadgetWardrobeShirtText.appearanceLink= nil
+	InspectorGadgetWardrobeTabardText.appearanceLink= nil
+	InspectorGadgetWardrobeWristText.appearanceLink= nil
+	InspectorGadgetWardrobeHandsText.appearanceLink= nil
+	InspectorGadgetWardrobeWaistText.appearanceLink= nil
+	InspectorGadgetWardrobeLegsText.appearanceLink= nil
+	InspectorGadgetWardrobeFeetText.appearanceLink= nil
+	InspectorGadgetWardrobeMainHandText.appearanceLink= nil
+	InspectorGadgetWardrobeSecondaryHandText.appearanceLink= nil
+
+end
 
 function IGWardrobe_OnLoad()
+	if ( not CollectionsJournal ) then
+		CollectionsJournal_LoadUI();
+	end
+	IGWardrobeFrame_ClearSlots()
 	IGInspectSourcesDump()
 	IGWardrobeFrame_UpdateButtons()
 end
@@ -454,6 +484,14 @@ printable = gsub(fixedlink, "\124", "\124\124");
 print(printable)
 linkString = string.match(link, "transmogappearance[%-?%d:]+")
 print(linkString)
+
+CollectionsJournal_LoadUI();
+for i = 1, 11 do
+   slot = WardrobeCollectionFrame_GetSlotFromCategoryID(i)
+   slotg = _G[slot]
+   print(format("%s %s %s.", i, slot, slotg))
+end
+
 
 end
 

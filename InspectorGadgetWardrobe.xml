@@ -138,18 +138,9 @@
 							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeHeadSlot" x="46" y="0"/>
 						</Anchors>
 					</Button>
-					<Button name="InspectorGadgetWardrobeNeckSlot" inherits="InspectorGadgetWardrobeItemSlotButtonLeftTemplate">
-						<Anchors>
-							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeHeadSlot" relativePoint="BOTTOMLEFT">
-								<Offset>
-									<AbsDimension x="0" y="-4"/>
-								</Offset>
-							</Anchor>
-						</Anchors>
-					</Button>
 					<Button name="InspectorGadgetWardrobeShoulderSlot" inherits="InspectorGadgetWardrobeItemSlotButtonLeftTemplate">
 						<Anchors>
-							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeNeckSlot" relativePoint="BOTTOMLEFT">
+							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeHeadSlot" relativePoint="BOTTOMLEFT">
 								<Offset>
 									<AbsDimension x="0" y="-4"/>
 								</Offset>
@@ -284,42 +275,6 @@
 							<Anchor point="TOPRIGHT" relativeTo="InspectorGadgetWardrobeFeetSlot" x="-46" y="0"/>
 						</Anchors>
 					</Button>
-					<Button name="InspectorGadgetWardrobeFinger0Slot" inherits="InspectorGadgetWardrobeItemSlotButtonRightTemplate">
-						<Anchors>
-							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeFeetSlot" relativePoint="BOTTOMLEFT">
-								<Offset>
-									<AbsDimension x="0" y="-4"/>
-								</Offset>
-							</Anchor>
-						</Anchors>
-					</Button>
-					<Button name="InspectorGadgetWardrobeFinger1Slot" inherits="InspectorGadgetWardrobeItemSlotButtonRightTemplate">
-						<Anchors>
-							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeFinger0Slot" relativePoint="BOTTOMLEFT">
-								<Offset>
-									<AbsDimension x="0" y="-4"/>
-								</Offset>
-							</Anchor>
-						</Anchors>
-					</Button>
-					<Button name="InspectorGadgetWardrobeTrinket0Slot" inherits="InspectorGadgetWardrobeItemSlotButtonRightTemplate">
-						<Anchors>
-							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeFinger1Slot" relativePoint="BOTTOMLEFT">
-								<Offset>
-									<AbsDimension x="0" y="-4"/>
-								</Offset>
-							</Anchor>
-						</Anchors>
-					</Button>
-					<Button name="InspectorGadgetWardrobeTrinket1Slot" inherits="InspectorGadgetWardrobeItemSlotButtonRightTemplate">
-						<Anchors>
-							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeTrinket0Slot" relativePoint="BOTTOMLEFT">
-								<Offset>
-									<AbsDimension x="0" y="-4"/>
-								</Offset>
-							</Anchor>
-						</Anchors>
-					</Button>
 					<Button name="InspectorGadgetWardrobeMainHandSlot" inherits="InspectorGadgetWardrobeItemSlotButtonBottomTemplate">
 						<Anchors>
 							<Anchor point="BOTTOMLEFT">
@@ -338,6 +293,11 @@
 							</Layer>
 						</Layers>
 					</Button>
+					<Button name="InspectorGadgetWardrobeMainHandText" inherits="InspectorGadgetWardrobeItemTextButtonRightTemplate">
+						<Anchors>
+							<Anchor point="TOPRIGHT" relativeTo="InspectorGadgetWardrobeMainHandSlot" x="-46" y="0"/>
+						</Anchors>
+					</Button>
 					<Button name="InspectorGadgetWardrobeSecondaryHandSlot" inherits="InspectorGadgetWardrobeItemSlotButtonBottomTemplate">
 						<Anchors>
 							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeMainHandSlot" relativePoint="TOPRIGHT">
@@ -345,6 +305,11 @@
 									<AbsDimension x="5" y="0"/>
 								</Offset>
 							</Anchor>
+						</Anchors>
+					</Button>
+					<Button name="InspectorGadgetWardrobeSecondaryHandText" inherits="InspectorGadgetWardrobeItemTextButtonRightTemplate">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetWardrobeSecondaryHandSlot" x="42" y="0"/>
 						</Anchors>
 					</Button>
 				</Frames>
