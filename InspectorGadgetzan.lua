@@ -73,11 +73,11 @@ function IGMount_Report(mount)
 		mount = IGMount("playertarget")
 	end
 	if mount then
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		C_MountJournal.Pickup(mount.index)
 		IGMount_Show(mount.index)
 	else
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Mount reports: Not mounted")
+		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: Not mounted")
 	end
 end
 
@@ -88,10 +88,10 @@ end
 function IGMount_Clone()
 	local mount = IGMount("playertarget")
 	if mount then
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		C_MountJournal.SummonByID(mount.mountID)
 	else
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Mount reports: Not mounted - Unable to clone.")
+		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: Not mounted - Unable to clone.")
 	end
 end
 
@@ -159,7 +159,7 @@ local function IGInspectSourcesDump()
 	appearanceSources = C_TransmogCollection.GetInspectSources()
 
 	if appearanceSources then
-		if debugLevel then DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadget Appearances Dump") end
+		if debugLevel then DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Appearances Dump") end
 		for i = 1, #appearanceSources do
 			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
 				categoryID , appearanceID, unknownBoolean1, uiOrder, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
@@ -219,7 +219,7 @@ local function IGInspectSourcesDump()
 			end
 		end
 	else
-		print("Inspector Gadget not ready")
+		print("Inspector Gadgetzan not ready")
 	end
 end
 
@@ -411,7 +411,7 @@ local function createInspectFrameTab()
 		InspectFrameTab5:SetPoint("LEFT", InspectFrameTab4, "RIGHT", -16, 0)
 		InspectFrameTab5:SetText("IG")
 		InspectFrameTab5:SetScript("OnClick", function(self) IGWardrobe_OnLoad(); InspectFrameTab_OnClick(self); end)
-		InspectFrameTab5:SetScript("OnEnter", function(self) GameTooltip:SetOwner(self, "ANCHOR_RIGHT");GameTooltip:SetText("Wardrobe - Inspector Gadget", 1.0,1.0,1.0 );end)
+		InspectFrameTab5:SetScript("OnEnter", function(self) GameTooltip:SetOwner(self, "ANCHOR_RIGHT");GameTooltip:SetText("Wardrobe - Inspector Gadgetzan", 1.0,1.0,1.0 );end)
 		InspectFrameTab5:SetScript("OnLeave", GameTooltip_Hide)
 	end
 end
@@ -455,9 +455,9 @@ local IGCommandTable = {
 		[""] = function()  -- default
 			IGMount_Report()
 		end,
-		["help"] = "Inspector Gadget mount commands: clone, report",
+		["help"] = "Inspector Gadgetzan mount commands: clone, report",
 	},
-	["help"] = "Inspector Gadget commands: inspect, mount",
+	["help"] = "Inspector Gadgetzan commands: inspect, mount",
 }
 
 -- slash command processor from Addon book
