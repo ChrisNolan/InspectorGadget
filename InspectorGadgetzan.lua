@@ -43,6 +43,7 @@ local debugLevel = nil
 
 InspectorGadgetzan = CreateFrame("Frame") -- TODO if I have this here, do I need the .xml file?
 local addon = InspectorGadgetzan
+local addonName = ...
 
 local MountCache={};--  Stores our discovered mounts' spell IDs
 
@@ -464,6 +465,35 @@ end
 -- Event Handler
 --
 local events = {}
+
+-- LDB --------------------- --
+function events:ADDON_LOADED(justLoaded)
+	if justLoaded == addonName then
+		if not InspectorGadgetzanDB then InspectorGadgetzanDB = {} end
+		if not InspectorGadgetzanDB["DBIconTable"] then InspectorGadgetzanDB["DBIconTable"] = { ["hide"] = false } end
+		addon.db = InspectorGadgetzanDB
+
+		addon.LDBstub = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
+				type = 'launcher',
+				label = tostring(addonName), 
+				text = "", 	
+				icon = "Interface/icons/inv_helmet_50",					
+				OnClick = function(self, button)
+					InspectorGadgetzan.LDBstub = self
+					if button=="LeftButton" then
+						IGInspect_Show()		
+					elseif button=="RightButton" then
+						if IsShiftKeyDown() then 
+							IGMount_Clone()
+						else
+							IGMount_Report()
+						end			
+					end
+				end,
+			})
+		LibStub("LibDBIcon-1.0"):Register(addonName, addon.LDBstub, InspectorGadgetzanDB["DBIconTable"]) 
+	end 
+end
 
 function events:INSPECT_READY(...)
 	createInspectFrameTab()

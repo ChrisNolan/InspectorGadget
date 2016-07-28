@@ -7,10 +7,11 @@
 ## Version: 7.0.3.2
 
 ## DefaultState: enabled
-
+## SavedVariables: InspectorGadgetzanDB
 ## X-Category: Transmogrify, Companions
 ## X-Localizations: enUS
 
+embeds.xml
 InspectorGadgetzan.lua
 InspectorGadgetzan.xml
 InspectorGadgetzanWardrobe.xml
