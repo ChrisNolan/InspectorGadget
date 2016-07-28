@@ -6,6 +6,33 @@
 --  * http://wow.curseforge.com/addons/libaboutpanel/
 --  * http://www.wowace.com/addons/ace3/pages/getting-started/
 
+--------
+-- Upvalues
+--   To improve performance, the addon has its own copy of some globals
+
+local _G = _G
+local C_MountJournal = C_MountJournal
+local C_TransmogCollection = C_TransmogCollection
+local CheckInteractDistance = CheckInteractDistance
+local CreateFrame = CreateFrame
+local CursorUpdate = CursorUpdate
+local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
+local GetInventorySlotInfo = GetInventorySlotInfo
+local GetItemInfo = GetItemInfo
+local GetItemInfoInstant = GetItemInfoInstant
+local GameTooltip = GameTooltip
+local InspectUnit = InspectUnit
+local NO_TRANSMOG_SOURCE_ID = NO_TRANSMOG_SOURCE_ID
+local SetItemButtonTexture = SetItemButtonTexture
+local ShowUIPanel = ShowUIPanel
+local strsub = strsub
+local strupper = strupper
+local UnitBuff = UnitBuff
+local UnitIsUnit = UnitIsUnit
+local UnitPlayerControlled = UnitPlayerControlled
+local WardrobeCollectionFrame_OpenTransmogLink = WardrobeCollectionFrame_OpenTransmogLink
+
+
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
 --   some other thoughts @ http://www.wowinterface.com/forums/showthread.php?t=39775&highlight=load+demand 
 --   maybe split the wardrobe stuff out into a sub-addon and have it LoadWith the inspect stuff?
@@ -19,8 +46,9 @@ local addon = InspectorGadgetzan
 local MountCache={};--  Stores our discovered mounts' spell IDs
 
 local function buildMountCache()
+	local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID
 	for i = 1, C_MountJournal.GetNumMounts() do --  Loop though all mounts
-		local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID = C_MountJournal.GetDisplayedMountInfo(i);--   Grab mount spell ID
+		creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID = C_MountJournal.GetDisplayedMountInfo(i);--   Grab mount spell ID
 		if spellID then
 			MountCache[spellID] = { -- Register spell ID in our cache
 				index = i,
@@ -156,12 +184,13 @@ transmogCategories[28] = {name = "Warglaives", slot = "MainHand"};
 --   if debugLevel is set, it'll also dump them to the chat
 local function IGInspectSourcesDump()
 
-	appearanceSources = C_TransmogCollection.GetInspectSources()
+	local appearanceSources = C_TransmogCollection.GetInspectSources()
 
 	if appearanceSources then
 		if debugLevel then DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Appearances Dump") end
 		for i = 1, #appearanceSources do
 			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
+				-- TODO should I local these?
 				categoryID , appearanceID, unknownBoolean1, uiOrder, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
 				if debugLevel then
 					DEFAULT_CHAT_FRAME:AddMessage(format("%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink))
@@ -244,7 +273,7 @@ function IGWardrobeItemSlotButton_OnEnter(self)
 		tooltipSet = GameTooltip:SetHyperlink(self.itemLink)
 		-- I want to catch of hte tooltip doesn't get set, but the flag needs work
 	else
-		local text = _G[strupper(strsub(self:GetName(), string.len("InspectorGadgetzanWardrobe")+1))];
+		local text = _G[strupper(strsub(self:GetName(), 27))]; -- 27 is hardcode of string.len("InspectorGadgetzanWardrobe")+1) why do the math after all
 		GameTooltip:SetText(text);
 	end
 	CursorUpdate(self);
