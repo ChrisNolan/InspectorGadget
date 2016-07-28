@@ -35,6 +35,7 @@ local WardrobeCollectionFrame_OpenTransmogLink = WardrobeCollectionFrame_OpenTra
 
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
 --   some other thoughts @ http://www.wowinterface.com/forums/showthread.php?t=39775&highlight=load+demand 
+--   more ideas @ http://www.wowinterface.com/forums/showthread.php?t=32654&highlight=InspectUnit
 --   maybe split the wardrobe stuff out into a sub-addon and have it LoadWith the inspect stuff?
 LoadAddOn("Blizzard_InspectUI")
 
@@ -143,10 +144,8 @@ end
 
 function IGInspect_Show()
 	if (UnitPlayerControlled("target") and CheckInteractDistance("target", 1) and not UnitIsUnit("player", "target")) then
+		InspectorGadgetzanWardrobeFrame:RegisterEvent("INSPECT_READY")
 		InspectUnit("target")
-		-- TODO how do I get the INSPECT_READY event here?  do a RegisterEvent?
-		IGWardrobe_OnLoad()
-		InspectFrameTab_OnClick(InspectFrameTab5)
 	end
 end
 
@@ -385,7 +384,8 @@ function IGWardrobeItemSlotButton_Update(button)
 	local textureName, itemID, itemName, itemLink, itemRarity, itemTexture;
 	if button.itemLink then
 		itemName, itemLink, itemRarity, _, _, _, _, _, _, itemTexture, _ = GetItemInfo(button.itemLink)
-		itemID = GetItemInfoInstant(itemLink)
+		-- if the above call is throttled it could be empty... --TODO better way to handle? check out LibInspect for a solution
+		if itemLink then itemID = GetItemInfoInstant(itemLink) end
 		textureName = itemTexture
 	end
 	if ( textureName ) then
@@ -426,6 +426,19 @@ function IGWardrobe_OnLoad()
 	IGWardrobeFrame_ClearButtons()
 	IGInspectSourcesDump()
 	IGWardrobeFrame_UpdateButtons()
+end
+
+function InspectorGadgetzanWardrobeFrame_OnEvent(self, event, ...)
+	if event == "INSPECT_READY" then
+		-- wait half a second before switching tabs to let the inspect catch up with the item cache
+		-- really cludgy, but I need to do something like the LibInspect library which makes sure with a couple of passes that all the items I need are ready.
+		--  Low priority since who but me will use the quick look anyway?
+		C_Timer.After(0.5, function()
+				IGWardrobe_OnLoad()
+				InspectFrameTab_OnClick(InspectFrameTab5)
+				InspectorGadgetzanWardrobeFrame:UnregisterEvent("INSPECT_READY")
+		end);
+	end
 end
 
 -- Add an extra 'tab' to the bottom of the InspectFrame
