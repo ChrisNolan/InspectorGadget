@@ -17,7 +17,7 @@ Inspector Gadgetzan gives you a few slash commands to use as well to help with y
 
 * `/ig mount`  - this will report to you the current target's mount both in chat and pop the mount journal for that mount
 * `/ig mount clone` - this is a fun quick gadget that lets you mount the same mount as your target (if you have it of course)
-* `/ig inspect` - inspect the target and jump to the Inspect Gadgetzan tab directly*
+* `/ig inspect` - inspect the target and jump to the Inspector Gadgetzan tab directly
 
 ## Development
 ### Where to find the AddOn
@@ -29,7 +29,6 @@ Inspector Gadgetzan gives you a few slash commands to use as well to help with y
 
 ### Known Issues
 
-* timing issue with /ig inspect 
 * no localization yet
 
 A gadget to improve access to information about players you encounter in World of Warcraft; such as what they are wearing, or which mount they are on.

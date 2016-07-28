@@ -390,5 +390,8 @@
 				</Frames>
 			</Frame>
 		</Frames>
+		<Scripts>
+			<OnEvent function="InspectorGadgetzanWardrobeFrame_OnEvent"/>
+		</Scripts>
 	</Frame>
 </Ui>
