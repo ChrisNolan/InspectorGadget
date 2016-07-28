@@ -164,3 +164,12 @@ local function tprint (tbl, indent)
     end
   end
 end
+
+-- from http://us.battle.net/wow/en/forum/topic/20747675037
+local function mountdump()
+	local mounts = C_MountJournal.GetMountIDs()
+	for i=1,#mounts do
+		local creatureName, spellID, icon, active, isUsable, sourceType = C_MountJournal.GetMountInfoByID(mounts[i])
+		print(creatureName,"has a mountID of ",mounts[i])
+	end
+end

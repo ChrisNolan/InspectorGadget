@@ -353,10 +353,10 @@ end
 -- Change the ItemSlot to match the links attached to it
 function IGWardrobeItemSlotButton_Update(button)
 	local unit = InspectFrame.unit;
-	local textureName;
+	local textureName, itemID, itemName, itemLink, itemRarity, itemTexture;
 	if button.itemLink then
-		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(button.itemLink)
-		local itemID = GetItemInfoInstant(itemLink)
+		itemName, itemLink, itemRarity, _, _, _, _, _, _, itemTexture, _ = GetItemInfo(button.itemLink)
+		itemID = GetItemInfoInstant(itemLink)
 		textureName = itemTexture
 	end
 	if ( textureName ) then
