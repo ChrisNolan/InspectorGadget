@@ -147,6 +147,8 @@ function IGInspect_Show()
 	if (UnitPlayerControlled("target") and CheckInteractDistance("target", 1) and not UnitIsUnit("player", "target")) then
 		InspectorGadgetzanWardrobeFrame:RegisterEvent("INSPECT_READY")
 		InspectUnit("target")
+	else
+		print("Invalid target/Target not found.")
 	end
 end
 
@@ -489,6 +491,12 @@ function events:ADDON_LOADED(justLoaded)
 							IGMount_Report()
 						end			
 					end
+				end,
+				OnTooltipShow = function(tooltip)
+					tooltip:AddLine("|cFFFFFFFFInspector Gadgetzan|r")
+					tooltip:AddLine("Click to Inspect Wardrobe of target")
+					tooltip:AddLine("Right-Click to Inspect their Mount")
+					tooltip:AddLine("Shift-Right-Click to Mount their Mount")
 				end,
 			})
 		LibStub("LibDBIcon-1.0"):Register(addonName, addon.LDBstub, InspectorGadgetzanDB["DBIconTable"]) 
