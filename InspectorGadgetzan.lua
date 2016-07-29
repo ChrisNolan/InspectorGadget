@@ -30,7 +30,6 @@ local strupper = strupper
 local UnitBuff = UnitBuff
 local UnitIsUnit = UnitIsUnit
 local UnitPlayerControlled = UnitPlayerControlled
-local WardrobeCollectionFrame_OpenTransmogLink = WardrobeCollectionFrame_OpenTransmogLink
 
 
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
@@ -41,9 +40,117 @@ LoadAddOn("Blizzard_InspectUI")
 
 local debugLevel = nil
 
-InspectorGadgetzan = CreateFrame("Frame") -- TODO if I have this here, do I need the .xml file?
-local addon = InspectorGadgetzan
 local addonName = ...
+local addonTitle = select(2, GetAddOnInfo(addonName))
+InspectorGadgetzan = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
+local addon = InspectorGadgetzan
+
+-- configuration options
+local options = {
+	name = addonName,
+	desc = nil,
+	handler = InspectorGadgetzan,
+	type = 'group',
+	args = {
+		minimap = {
+			name = 'Minimap',
+			type = 'group',
+			args = {
+				hide = {
+					type = 'toggle',
+					name = 'Hide Minimap Icon',
+					desc = 'Hide the Minimap Icon for ' .. addonTitle,
+					set = 'optionsToggleMinimap',
+					get = function(info) return InspectorGadgetzan.db.profile.minimap.hide end,
+					width = 'full', -- this keeps the checkboxes on one line each
+				},
+			},
+		},
+		pickupMount = {
+			type = 'toggle',
+			name = 'Pickup Mount on Report',
+			desc = 'If you have the mount you are inspecting, would you like the mount icon to be added automatically to your mouse cursor so you can place on a toolbar',
+			set = function(info, val) InspectorGadgetzan.db.profile.pickupMount = not InspectorGadgetzan.db.profile.pickupMount end,
+			get = function(info) return InspectorGadgetzan.db.profile.pickupMount or false end,
+			width = 'full', -- this keeps the checkboxes on one line each
+		},
+	},
+}
+local defaults = {
+	profile = {
+		minimap = {
+			hide = false,
+			minimapPos = 11.8886764296701,
+		},
+		pickupMount = false,
+	}
+}
+local optionsTable = LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, options, nil)
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+
+-- Setup a LibDataBroker interface
+--   docs @ http://www.wowace.com/addons/libdbicon-1-0/
+--   LibDataBroker work originally submitted by VincentSDSH
+addon.LDBstub = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
+	type = 'launcher',
+	label = tostring(addonName),
+	text = "",
+	icon = "Interface/icons/inv_helm_misc_fireworkpartyhat",
+	OnClick = function(self, button)
+		InspectorGadgetzan.LDBstub = self
+		if button=="LeftButton" then
+			if IsAltKeyDown() then
+				InspectorGadgetzan:OpenConfig()
+			else
+				IGInspect_Show()
+			end
+		elseif button=="RightButton" then
+			if IsShiftKeyDown() then
+				IGMount_Clone()
+			else
+				IGMount_Report()
+			end			
+		end
+	end,
+	OnTooltipShow = function(tooltip)
+		tooltip:AddLine("|cFFFFFFFFInspector Gadgetzan|r")
+		tooltip:AddLine("Click to Inspect Wardrobe of target")
+		tooltip:AddLine("Alt-Click to open the options")
+		tooltip:AddLine("Right-Click to Inspect their Mount")
+		tooltip:AddLine("Shift-Right-Click to Mount their Mount")
+	end,
+})
+addon.icon = LibStub("LibDBIcon-1.0")
+
+function InspectorGadgetzan:OnInitialize()
+	self.db = LibStub("AceDB-3.0"):New(addonName .. "DB", defaults, true) -- use global profile called 'Default'
+	options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
+	AceConfigDialog:AddToBlizOptions(addonName, addonTitle)
+	self.icon:Register(addonName, addon.LDBstub, self.db.profile.minimap) 
+end
+
+function InspectorGadgetzan:OnEnable()
+    -- Called when the addon is enabled
+end
+
+function InspectorGadgetzan:OnDisable()
+    -- Called when the addon is disabled
+end
+
+function InspectorGadgetzan:optionsToggleMinimap(info, val)
+	InspectorGadgetzan.db.profile.minimap.hide = not InspectorGadgetzan.db.profile.minimap.hide
+	if self.db.profile.minimap.hide then
+		addon.icon:Hide(addonName)
+	else
+		addon.icon:Show(addonName)
+	end
+end
+
+function InspectorGadgetzan:OpenConfig()
+	InterfaceOptionsFrame_OpenToCategory(addonTitle)
+	-- need to call it a second time as there is a bug where the first time it won't switch - need Blizzard to fix
+	InterfaceOptionsFrame_OpenToCategory(addonTitle)
+end
 
 local MountCache={};--  Stores our discovered mounts' spell IDs
 
@@ -104,7 +211,9 @@ function IGMount_Report(mount)
 	end
 	if mount then
 		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
-		C_MountJournal.Pickup(mount.index)
+		if InspectorGadgetzan.db.profile.pickupMount then
+			C_MountJournal.Pickup(mount.index)
+		end
 		IGMount_Show(mount.index)
 	else
 		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: Not mounted")
@@ -466,57 +575,18 @@ end
 --------------------------------------------------------------------------------
 -- Event Handler
 --
-local events = {}
+local events = { "INSPECT_READY", "PLAYER_LOGIN" }
 
--- LDB --------------------- --
-function events:ADDON_LOADED(justLoaded)
-	if justLoaded == addonName then
-		if not InspectorGadgetzanDB then InspectorGadgetzanDB = {} end
-		if not InspectorGadgetzanDB["DBIconTable"] then InspectorGadgetzanDB["DBIconTable"] = { ["hide"] = false } end
-		addon.db = InspectorGadgetzanDB
-
-		addon.LDBstub = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
-				type = 'launcher',
-				label = tostring(addonName), 
-				text = "", 	
-				icon = "Interface/icons/inv_helmet_50",					
-				OnClick = function(self, button)
-					InspectorGadgetzan.LDBstub = self
-					if button=="LeftButton" then
-						IGInspect_Show()		
-					elseif button=="RightButton" then
-						if IsShiftKeyDown() then 
-							IGMount_Clone()
-						else
-							IGMount_Report()
-						end			
-					end
-				end,
-				OnTooltipShow = function(tooltip)
-					tooltip:AddLine("|cFFFFFFFFInspector Gadgetzan|r")
-					tooltip:AddLine("Click to Inspect Wardrobe of target")
-					tooltip:AddLine("Right-Click to Inspect their Mount")
-					tooltip:AddLine("Shift-Right-Click to Mount their Mount")
-				end,
-			})
-		LibStub("LibDBIcon-1.0"):Register(addonName, addon.LDBstub, InspectorGadgetzanDB["DBIconTable"]) 
-	end 
-end
-
-function events:INSPECT_READY(...)
+function InspectorGadgetzan:INSPECT_READY(...)
 	createInspectFrameTab()
 end
 
-function events:PLAYER_LOGIN(...)
+function InspectorGadgetzan:PLAYER_LOGIN(...)
 	buildMountCache()
 end
 
-addon:SetScript("OnEvent", function(self, event, ...)
-	events[event](self, ...)
-end)
-
-for k,_ in pairs(events) do
-	addon:RegisterEvent(k)
+for k, v in pairs(events) do
+	addon:RegisterEvent(v)
 end
 
 
