@@ -11,13 +11,14 @@ With Inspector Gadgetzan, when you inspect another player you get a new tab alon
 
 Additionally if the person you are inspecting is mounted, it will show you the name of their current mount, and give you a button to see that mount in the mount journal.
 
-## Slash commands
+## Slash commands & LDB commands
 
-Inspector Gadgetzan gives you a few slash commands to use as well to help with your macros etc.
+Inspector Gadgetzan gives you a few slash commands to use as well to help with your macros etc. and these functions are available via the minimap icon, and an LDB interface
 
 * `/ig mount`  - this will report to you the current target's mount both in chat and pop the mount journal for that mount
 * `/ig mount clone` - this is a fun quick gadget that lets you mount the same mount as your target (if you have it of course)
 * `/ig inspect` - inspect the target and jump to the Inspector Gadgetzan tab directly
+* `/ig options` - opens the interface options screen
 
 ## Development
 ### Where to find the AddOn
@@ -31,4 +32,8 @@ Inspector Gadgetzan gives you a few slash commands to use as well to help with y
 
 * no localization yet
 
-A gadget to improve access to information about players you encounter in World of Warcraft; such as what they are wearing, or which mount they are on.
+A gadget to improve access to information about players you encounter in World of Warcraft; such as what they are wearing, or which mount they are on writtey by Hiketeia of Emerald Dream-US.
+
+### Contributors
+
+* VincentSDSH - 2016-07 initial LDB&Minimap code + first fan!
