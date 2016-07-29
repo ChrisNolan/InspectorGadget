@@ -607,7 +607,10 @@ local IGCommandTable = {
 		end,
 		["help"] = "Inspector Gadgetzan mount commands: clone, report",
 	},
-	["help"] = "Inspector Gadgetzan commands: inspect, mount",
+	["options"] = function()
+		InspectorGadgetzan:OpenConfig()
+	end,
+	["help"] = "Inspector Gadgetzan commands: inspect, mount, options",
 }
 
 -- slash command processor from Addon book
