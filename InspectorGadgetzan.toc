@@ -4,13 +4,14 @@
 ## X-License: MIT
 
 ## Interface: 70000
-## Version: 7.0.3.1
+## Version: 7.0.3.3
 
 ## DefaultState: enabled
-
+## SavedVariables: InspectorGadgetzanDB
 ## X-Category: Transmogrify, Companions
 ## X-Localizations: enUS
 
+embeds.xml
 InspectorGadgetzan.lua
 InspectorGadgetzan.xml
 InspectorGadgetzanWardrobe.xml
