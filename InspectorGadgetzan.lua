@@ -83,6 +83,7 @@ local defaults = {
 			minimapPos = 11.8886764296701,
 		},
 		pickupMount = false,
+		chatframeName = "Inspector Gadgetzan",
 	}
 }
 local optionsTable = LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, options, nil)
@@ -152,6 +153,18 @@ function InspectorGadgetzan:OpenConfig()
 	InterfaceOptionsFrame_OpenToCategory(addonTitle)
 end
 
+function InspectorGadgetzan:ChatFrame()
+	local name = self.db.profile.chatframeName
+	local frame = DEFAULT_CHAT_FRAME
+	for i = 1, NUM_CHAT_WINDOWS do
+		n = FCF_GetChatWindowInfo(i)
+		if n == name then
+			frame = _G["ChatFrame"..i]
+		end
+	end
+	return frame
+end
+
 local MountCache={};--  Stores our discovered mounts' spell IDs
 
 local function buildMountCache()
@@ -210,13 +223,13 @@ function IGMount_Report(mount)
 		mount = IGMount("playertarget")
 	end
 	if mount then
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		if InspectorGadgetzan.db.profile.pickupMount then
 			C_MountJournal.Pickup(mount.index)
 		end
 		IGMount_Show(mount.index)
 	else
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: Not mounted")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted")
 	end
 end
 
@@ -227,10 +240,10 @@ end
 function IGMount_Clone()
 	local mount = IGMount("playertarget")
 	if mount then
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		C_MountJournal.SummonByID(mount.mountID)
 	else
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: Not mounted - Unable to clone.")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted - Unable to clone.")
 	end
 end
 
@@ -257,7 +270,7 @@ function IGInspect_Show()
 		InspectorGadgetzanWardrobeFrame:RegisterEvent("INSPECT_READY")
 		InspectUnit("target")
 	else
-		print("Invalid target/Target not found.")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.")
 	end
 end
 
@@ -298,13 +311,13 @@ local function IGInspectSourcesDump()
 	local appearanceSources = C_TransmogCollection.GetInspectSources()
 
 	if appearanceSources then
-		if debugLevel then DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Appearances Dump") end
+		if debugLevel then addon:Print(InspectorGadgetzan:ChatFrame(), "Appearances Dump") end
 		for i = 1, #appearanceSources do
 			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
 				-- TODO should I local these?
 				categoryID , appearanceID, unknownBoolean1, uiOrder, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
 				if debugLevel then
-					DEFAULT_CHAT_FRAME:AddMessage(format("%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink))
+					addon:Printf(InspectorGadgetzan:ChatFrame(), "%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink)
 					-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
 				end
 				-- TODO this is really ugly... iterate it ... is _G[] what I need?
@@ -359,7 +372,7 @@ local function IGInspectSourcesDump()
 			end
 		end
 	else
-		print("Inspector Gadgetzan not ready")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "not ready")
 	end
 end
 
@@ -587,7 +600,7 @@ end
 
 function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 	-- flattens a simple table to a string with a delimiter
-	--   gotta be a standard wayw to do this in lua, no?
+	--   gotta be a standard wayw to do this in lua, no? "tconcat" maybe?
 	local function tbl2str(t)
 		local s = ""
 		local delimiter = " / "
@@ -599,12 +612,7 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 
 	-- ERR_LEARN_TRANSMOG_S = "%s has been added to your appearance collection.";
 	-- ERR_REVOKE_TRANSMOG_S = "%s has been removed from your appearance collection.";
-	self:Print(...)
 	local latestAppearanceID, latestAppearanceCategoryID = C_TransmogCollection.GetLatestAppearance();
-	self:Print(latestAppearanceID)
-	-- appearanceID = 13602 - 3 sources, 28789/ 31326 / 38244
-	-- C_TransmogCollection.GetAppearanceSources(latestAppearanceID) -- I get the appearance but don't know the source it came from... weird
-	-- C_TransmogCollection.GetAppearanceInfoBySource(28789)
 	if ( latestAppearanceID and latestAppearanceID ~= self.latestAppearanceID ) then
 		self.latestAppearanceID = latestAppearanceID;
 		-- is a sourceID and appearanceID the same...? nope.  seems wrong to just pick one of the sources of the new appearance in order to get a link - should I give all possible ones?  Hmmm... could be neat to show the ones you know, and the sources you don't know yet?  Or is that overkill?
@@ -617,26 +625,21 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 			if source.isCollected then
 				if not sourceID then sourceID = source.sourceID end
 				tinsert(collectedNames, source.name)
-				print("Collected " .. source.name)
 			else
 				tinsert(unCollectedNames, source.name)
-			print("Uncollected " .. source.name)
 			end
 		end
-		print("Collected ".. tbl2str(collectedNames))
-		print("Uncollected ".. tbl2str(unCollectedNames))
 		local appearanceLink = select(7, C_TransmogCollection.GetAppearanceSourceInfo(sourceID))
-		self:Print("The escaped link is: ", appearanceLink:gsub("|", "||"))
-		-- print(string.gsub("asfsdf[blue]jweoiur","%[.*%]","[orange]"))
-		appearanceLink = string.gsub(appearanceLink, "%[.*%]", "["..tbl2str(collectedNames).."]")
-		self:Print("The escaped link is: ", appearanceLink:gsub("|", "||"))
-		self:Printf(ERR_LEARN_TRANSMOG_S, appearanceLink)
+		-- substitute the text between the [] brackets with all the names for that appearance we know
+		appearanceLink = appearanceLink:gsub("%[.*%]", "["..tbl2str(collectedNames).."]")
+		self:Printf(self:ChatFrame(), ERR_LEARN_TRANSMOG_S, appearanceLink)
 		if #unCollectedNames > 0 then
-			self:Printf("You can still collected these sources for that appearance: %s", tbl2str(unCollectedNames))
+			self:Printf(self:ChatFrame(), "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
 		end
 		self.latestAppearanceLink = appearanceLink
 	elseif latestAppearanceID == nil then
-		self:Print("An appearance was removed from your appearance collection")
+		self.latestAppearanceLink = latestAppearanceID
+		self:Print(self:ChatFrame(), "An appearance has been removed from your appearance collection")
 	end
 end
 
