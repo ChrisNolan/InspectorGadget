@@ -80,6 +80,8 @@ local defaults = {
 	profile = {
 		minimap = {
 			hide = false,
+			-- setting a default position - the idea is so it won't be buried under all the other icons that start in the same spot which the user never moves
+			--   there is some concern this might break in non-stand UIs...
 			minimapPos = 11.8886764296701,
 		},
 		pickupMount = false,
@@ -140,15 +142,16 @@ end
 function InspectorGadgetzan:optionsToggleMinimap(info, val)
 	InspectorGadgetzan.db.profile.minimap.hide = not InspectorGadgetzan.db.profile.minimap.hide
 	if self.db.profile.minimap.hide then
-		addon.icon:Hide(addonName)
+		self.icon:Hide(addonName)
 	else
-		addon.icon:Show(addonName)
+		self.icon:Show(addonName)
 	end
 end
 
 function InspectorGadgetzan:OpenConfig()
 	InterfaceOptionsFrame_OpenToCategory(addonTitle)
 	-- need to call it a second time as there is a bug where the first time it won't switch - need Blizzard to fix
+	--   there is a function available in !BlizzBugsSuck which lets the single call work.  I'll stick with my kludge for now
 	InterfaceOptionsFrame_OpenToCategory(addonTitle)
 end
 
@@ -545,6 +548,7 @@ function InspectorGadgetzanWardrobeFrame_OnEvent(self, event, ...)
 		-- wait half a second before switching tabs to let the inspect catch up with the item cache
 		-- really cludgy, but I need to do something like the LibInspect library which makes sure with a couple of passes that all the items I need are ready.
 		--  Low priority since who but me will use the quick look anyway?
+		--  With the LDB/Minimap now... more people will be going in this way so not as low as it was
 		C_Timer.After(0.5, function()
 				IGWardrobe_OnLoad()
 				InspectFrameTab_OnClick(InspectFrameTab5)
@@ -555,6 +559,7 @@ end
 
 -- Add an extra 'tab' to the bottom of the InspectFrame
 --   very problematic to other addons that also add tabs?
+--   how do I go about skinning it correctly for other UIs - thinking ElvUI specifically
 local function createInspectFrameTab()
 	-- TODO the LoadAddon stuff messed up the highlighting of this this button... come back to check this before commit
 	if not InspectFrameTab5 then

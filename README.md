@@ -1,8 +1,8 @@
 # InspectorGadgetzan
 Inspect another's Wardrobe Appearances and current Mount.  What else is in his hat?
 
-Take the hassle out of inspecting someone's **transmog**!
-Quickly know (and clone) what **mount** someone is using!
+Take the hassle out of inspecting someone's **transmog**!  
+Quickly know (and clone) what **mount** someone is using!  
 *Go Go Inspector Gadgetzan!*
 
 ## Overview
@@ -23,16 +23,15 @@ Inspector Gadgetzan gives you a few slash commands to use as well to help with y
 ## Development
 ### Where to find the AddOn
 
-* https://github.com/ChrisNolan/InspectorGadgetzan - Main development site
-* https://mods.curse.com/addons/wow/inspectorgadgetzan
-* http://wow.curseforge.com/addons/inspectorgadgetzan/
-* http://www.wowinterface.com/downloads/info24082-InspectorGadgetzan.html
+* [https://github.com/ChrisNolan/InspectorGadgetzan](https://github.com/ChrisNolan/InspectorGadgetzan) - Main development site
+* [https://mods.curse.com/addons/wow/inspectorgadgetzan](https://mods.curse.com/addons/wow/inspectorgadgetzan)
+* [http://www.wowinterface.com/downloads/info24082-InspectorGadgetzan.html](http://www.wowinterface.com/downloads/info24082-InspectorGadgetzan.html)
 
 ### Known Issues
 
 * no localization yet
 
-A gadget to improve access to information about players you encounter in World of Warcraft; such as what they are wearing, or which mount they are on writtey by Hiketeia of Emerald Dream-US.
+A gadget to improve access to information about players you encounter in World of Warcraft; such as what they are wearing, or which mount they are on written by Hiketeia of Emerald Dream-US.
 
 ### Contributors
 
