@@ -20,6 +20,12 @@ Be sure to find the event for loosing an appearnce too so if you sell something 
 
 When your group members get a new appearance report show that as well (via the AceComms - they'll need the addon to see your announcements most likly - depending on how the event works.)
 
+### Notes
+
+* Event that triggers is: TRANSMOG_COLLECTION_UPDATED.  Use C_TransmogCollection.GetLatestAppearance() after that
+* C_TransmogCollection.GetCategoryCollectedCount -- could use at beginning of session, save the ount for each category, then throughout look at the new #s to tell you how many of each thing you've gotten.
+* How does C_TransmogCollection.IsNewAppearance work? - It is used in the UI to glow and show the 'new' text. Would be heavy to search out all the 'new'... wonder if we can do that in the UI itself though rather than ourselves?
+
 ## Fashion Scoring
 
 When looking at anothers appearance be able to rate it / share it / steal it.

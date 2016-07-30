@@ -575,7 +575,7 @@ end
 --------------------------------------------------------------------------------
 -- Event Handler
 --
-local events = { "INSPECT_READY", "PLAYER_LOGIN" }
+local events = { "INSPECT_READY", "PLAYER_LOGIN", "TRANSMOG_COLLECTION_UPDATED" }
 
 function InspectorGadgetzan:INSPECT_READY(...)
 	createInspectFrameTab()
@@ -583,6 +583,61 @@ end
 
 function InspectorGadgetzan:PLAYER_LOGIN(...)
 	buildMountCache()
+end
+
+function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
+	-- flattens a simple table to a string with a delimiter
+	--   gotta be a standard wayw to do this in lua, no?
+	local function tbl2str(t)
+		local s = ""
+		local delimiter = " / "
+		for k,v in pairs(t) do
+			s = s .. v .. delimiter
+		end
+		return string.gsub(s, delimiter .. "$", "")
+	end
+
+	-- ERR_LEARN_TRANSMOG_S = "%s has been added to your appearance collection.";
+	-- ERR_REVOKE_TRANSMOG_S = "%s has been removed from your appearance collection.";
+	self:Print(...)
+	local latestAppearanceID, latestAppearanceCategoryID = C_TransmogCollection.GetLatestAppearance();
+	self:Print(latestAppearanceID)
+	-- appearanceID = 13602 - 3 sources, 28789/ 31326 / 38244
+	-- C_TransmogCollection.GetAppearanceSources(latestAppearanceID) -- I get the appearance but don't know the source it came from... weird
+	-- C_TransmogCollection.GetAppearanceInfoBySource(28789)
+	if ( latestAppearanceID and latestAppearanceID ~= self.latestAppearanceID ) then
+		self.latestAppearanceID = latestAppearanceID;
+		-- is a sourceID and appearanceID the same...? nope.  seems wrong to just pick one of the sources of the new appearance in order to get a link - should I give all possible ones?  Hmmm... could be neat to show the ones you know, and the sources you don't know yet?  Or is that overkill?
+		local sources = C_TransmogCollection.GetAppearanceSources(self.latestAppearanceID)
+		local sourceID
+		local collectedNames = {}
+		local unCollectedNames = {}
+		for k, source in pairs(sources) do
+			-- source.{sourceType, name, isCollected, sourceID, quality}
+			if source.isCollected then
+				if not sourceID then sourceID = source.sourceID end
+				tinsert(collectedNames, source.name)
+				print("Collected " .. source.name)
+			else
+				tinsert(unCollectedNames, source.name)
+			print("Uncollected " .. source.name)
+			end
+		end
+		print("Collected ".. tbl2str(collectedNames))
+		print("Uncollected ".. tbl2str(unCollectedNames))
+		local appearanceLink = select(7, C_TransmogCollection.GetAppearanceSourceInfo(sourceID))
+		self:Print("The escaped link is: ", appearanceLink:gsub("|", "||"))
+		-- print(string.gsub("asfsdf[blue]jweoiur","%[.*%]","[orange]"))
+		appearanceLink = string.gsub(appearanceLink, "%[.*%]", "["..tbl2str(collectedNames).."]")
+		self:Print("The escaped link is: ", appearanceLink:gsub("|", "||"))
+		self:Printf(ERR_LEARN_TRANSMOG_S, appearanceLink)
+		if #unCollectedNames > 0 then
+			self:Printf("You can still collected these sources for that appearance: %s", tbl2str(unCollectedNames))
+		end
+		self.latestAppearanceLink = appearanceLink
+	elseif latestAppearanceID == nil then
+		self:Print("An appearance was removed from your appearance collection")
+	end
 end
 
 for k, v in pairs(events) do
