@@ -37,6 +37,13 @@ local type, pairs, error = type, pairs, error
 local format, strfind, strsub = string.format, string.find, string.sub
 local max = math.max
 
+-- Chat colors
+local CHAT_COLOR_PARTY 		= "AAAAFF" --,170,170,255,,0.666666667,0.666666667,1
+local CHAT_COLOR_RAID 		= "FF7F00" --,255,127,0,,1,0.498039216,0
+local CHAT_COLOR_GUILD 		= "40FF40" --,64,255,64,,0.250980392,1,0.250980392
+local CHAT_COLOR_WHISPER 	= "FF80FF" --,255,128,255,,1,0.501960784,1
+
+
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
 --   some other thoughts @ http://www.wowinterface.com/forums/showthread.php?t=39775&highlight=load+demand 
 --   more ideas @ http://www.wowinterface.com/forums/showthread.php?t=32654&highlight=InspectUnit
@@ -47,7 +54,7 @@ local debugLevel = nil
 
 local addonName = ...
 local addonTitle = select(2, GetAddOnInfo(addonName))
-InspectorGadgetzan = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
+InspectorGadgetzan = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0")
 local addon = InspectorGadgetzan
 
 -- configuration options
@@ -132,7 +139,8 @@ function InspectorGadgetzan:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New(addonName .. "DB", defaults, true) -- use global profile called 'Default'
 	options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 	AceConfigDialog:AddToBlizOptions(addonName, addonTitle)
-	self.icon:Register(addonName, addon.LDBstub, self.db.profile.minimap) 
+	self.icon:Register(addonName, addon.LDBstub, self.db.profile.minimap)
+	self:RegisterComm("NewAppearance")
 end
 
 function InspectorGadgetzan:OnEnable()
@@ -168,6 +176,25 @@ function InspectorGadgetzan:ChatFrame()
 		end
 	end
 	return frame
+end
+
+function InspectorGadgetzan:OnCommReceived(prefix, message, distribution, sender)
+    -- process the incoming message
+	if prefix == "NewAppearance" then
+		if sender ~= UnitName("player") then
+			local color
+			--self:Printf(self:ChatFrame(), "[%s] %s", sender, message)
+			-- TODO the color is reset to the default color -- I need to get the default color down the chain to the .AddMessage itself.  Need a new functions I think...
+			if distribution == "PARTY" then
+				color = CHAT_COLOR_PARTY
+			elseif distribution == "RAID" then
+				color = CHAT_COLOR_RAID
+			elseif distribution == "GUILD" then
+				color = CHAT_COLOR_GUILD
+			end
+			self:Printf(self:ChatFrame(), "|cff%s[%s] %s|r", color, sender, message)
+		end
+	end
 end
 
 local MountCache={};--  Stores our discovered mounts' spell IDs
@@ -616,6 +643,7 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 	end
 
 	-- ERR_LEARN_TRANSMOG_S = "%s has been added to your appearance collection.";
+	local SHARE_LEARN_TRANSMOG_S = "added %s to their appearance collection."
 	-- ERR_REVOKE_TRANSMOG_S = "%s has been removed from your appearance collection.";
 	local latestAppearanceID, latestAppearanceCategoryID = C_TransmogCollection.GetLatestAppearance();
 	if ( latestAppearanceID and latestAppearanceID ~= self.latestAppearanceID ) then
@@ -637,7 +665,10 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		local appearanceLink = select(7, C_TransmogCollection.GetAppearanceSourceInfo(sourceID))
 		-- substitute the text between the [] brackets with all the names for that appearance we know
 		appearanceLink = appearanceLink:gsub("%[.*%]", "["..tbl2str(collectedNames).."]")
+		-- TODO if it is a unique appearance, or you have unlocked all the appearances, say so
 		self:Printf(self:ChatFrame(), ERR_LEARN_TRANSMOG_S, appearanceLink)
+		self:SendCommMessage("NewAppearance", format(SHARE_LEARN_TRANSMOG_S, appearanceLink), "RAID")
+		self:SendCommMessage("NewAppearance", format(SHARE_LEARN_TRANSMOG_S, appearanceLink), "GUILD")
 		if #unCollectedNames > 0 then
 			self:Printf(self:ChatFrame(), "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
 		end

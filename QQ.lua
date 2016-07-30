@@ -217,9 +217,11 @@ function appearanceLinkTest()
 	local collectedNamesStr = ""
 	local unCollectedNames = {}
 	local unCollectedNamesStr = ""
+	local sourceID
 	for k, source in pairs(sources) do
 		-- source.{sourceType, name, isCollected, sourceID, quality}
 		if source.isCollected then
+			if not sourceID then sourceID = source.sourceID end
 			tinsert(collectedNames, source.name)
 			print("Collected " .. source.name)
 		else
@@ -229,6 +231,12 @@ function appearanceLinkTest()
 	end
 	print("Collected ".. tbl2str(collectedNames))
 	print("Uncollected ".. tbl2str(unCollectedNames))
+	local appearanceLink = select(7, C_TransmogCollection.GetAppearanceSourceInfo(sourceID))
+	print("The escaped link is: ", appearanceLink:gsub("|", "||"))
+	-- print(string.gsub("asfsdf[blue]jweoiur","%[.*%]","[orange]"))
+	appearanceLink = string.gsub(appearanceLink, "%[.*%]", "["..self.tbl2str(collectedNames).."]")
+	print("The escaped link is: ", appearanceLink:gsub("|", "||"))
+
 end
 
 function tbl2str(t)
@@ -239,3 +247,5 @@ function tbl2str(t)
 	end
 	return string.gsub(s, delimiter .. "$", "")
 end
+
+-- print("|cffff80ffThis is pink |cff80ff80and this is green|r but now it should be pink again|r") -- it isn't
