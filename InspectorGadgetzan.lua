@@ -31,6 +31,11 @@ local UnitBuff = UnitBuff
 local UnitIsUnit = UnitIsUnit
 local UnitPlayerControlled = UnitPlayerControlled
 
+-- Lua APIs
+local tconcat, tostring, select = table.concat, tostring, select
+local type, pairs, error = type, pairs, error
+local format, strfind, strsub = string.format, string.find, string.sub
+local max = math.max
 
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
 --   some other thoughts @ http://www.wowinterface.com/forums/showthread.php?t=39775&highlight=load+demand 
@@ -693,4 +698,50 @@ SLASH_INSPECTORGADGETZAN1 = "/inspectorgadgetzan"
 SLASH_INSPECTORGADGETZAN2 = "/ig"
 SlashCmdList["INSPECTORGADGETZAN"] = function(message)
 	DispatchCommand(message, IGCommandTable)
+end
+
+
+-------------------
+-- Taken from AceConsole-3.0
+--   All I wanted to change was the Print function itself, but I dont have enough knowledage atm to do that so I have all 3 here.
+local tmp={}
+local function Print(self,frame,...)
+	local n=0
+	if self ~= AceConsole and InspectorGadgetzan:ChatFrame() == DEFAULT_CHAT_FRAME then
+		n=n+1
+		tmp[n] = "|cff33ff99"..tostring( self ).."|r:"
+	end
+	for i=1, select("#", ...) do
+		n=n+1
+		tmp[n] = tostring(select(i, ...))
+	end
+	frame:AddMessage( tconcat(tmp," ",1,n) )
+end
+
+--- Print to DEFAULT_CHAT_FRAME or given ChatFrame (anything with an .AddMessage function)
+-- @paramsig [chatframe ,] ...
+-- @param chatframe Custom ChatFrame to print to (or any frame with an .AddMessage function)
+-- @param ... List of any values to be printed
+function InspectorGadgetzan:Print(...)
+	local frame = ...
+	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
+		return Print(self, frame, select(2,...))
+	else
+		return Print(self, DEFAULT_CHAT_FRAME, ...)
+	end
+end
+
+
+--- Formatted (using format()) print to DEFAULT_CHAT_FRAME or given ChatFrame (anything with an .AddMessage function)
+-- @paramsig [chatframe ,] "format"[, ...]
+-- @param chatframe Custom ChatFrame to print to (or any frame with an .AddMessage function)
+-- @param format Format string - same syntax as standard Lua format()
+-- @param ... Arguments to the format string
+function InspectorGadgetzan:Printf(...)
+	local frame = ...
+	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
+		return Print(self, frame, format(select(2,...)))
+	else
+		return Print(self, DEFAULT_CHAT_FRAME, format(...))
+	end
 end
