@@ -84,7 +84,16 @@ CHAT_COLOR["WHISPER"]		= {
 		["r"] = 1, ["g"] = 0.501960784, ["b"] = 1,
 	},
 }
-CHAT_COLOR["INSTANCE"] = CHAT_COLOR["PARTY"]
+CHAT_COLOR["INSTANCE_CHAT"] = CHAT_COLOR["PARTY"]
+
+local BLUE =   "|cff15abff"
+--local BLUE_GREEN = "|cff009e73"
+--local PINK = "|cffcc79a7"
+--local ORANGE = "|cffe69f00"
+local RED_ORANGE = "|cffff9333"
+local YELLOW = "|cfff0e442"
+local GRAY =   "|cff888888"
+
 
 
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
@@ -238,6 +247,35 @@ function InspectorGadgetzan:OnCommReceived(prefix, message, distribution, sender
 		if debugLevel then self:Print(prefix..message..distribution..sender) end
 	end
 end
+
+--[[ -- I'm using just the text of the tooltip return atm because these were tricky to wrap my head around.  I like the idea of using them though so let's keep them around for the time being
+
+function InspectorGadgetzan:IsValidAppearanceForCharacter(itemLink)
+	if CanIMogIt and itemLink then
+		return CanIMogIt:IsValidAppearanceForCharacter(itemLink)
+	else
+		return false
+	end
+end
+
+function InspectorGadgetzan:PlayerKnowsTransmog(itemLink)
+	if CanIMogIt then
+		return CanIMogIt:PlayerKnowsTransmog(itemLink)
+	end
+end
+
+function InspectorGadgetzan:CharacterCanLearnTransmog(itemLink)
+	if CanIMogIt then
+		CanIMogIt:CharacterCanLearnTransmog(itemLink)
+	end
+end
+
+function InspectorGadgetzan:CanIMogItGetTooltipText(itemLink)
+	if CanIMogIt then
+		CanIMogIt:GetTooltipText(itemLink)
+	end
+end
+]]--
 
 local MountCache={};--  Stores our discovered mounts' spell IDs
 
@@ -500,7 +538,8 @@ function IGWardrobeItemTextButton_OnEnter(self)
 		tooltipSet = GameTooltip:SetText(CanIMogIt:GetTooltipText(self.itemLink))
 		-- I want to catch of hte tooltip doesn't get set, but the flag needs work
 	else
-		local text = _G[strupper(strsub(self:GetName(), 27))]; -- 27 is hardcode of string.len("InspectorGadgetzanWardrobe")+1) why do the math after all
+		local n = strupper(strsub(self:GetName(), 27)) -- 27 is hardcode of string.len("InspectorGadgetzanWardrobe")+1) why do the math after all
+		local text = _G[n:gsub("TEXT", "SLOT")]
 		GameTooltip:SetText(text);
 	end
 	CursorUpdate(self);
@@ -517,9 +556,7 @@ function IGWardrobeItemTextButton_OnClick(self)
 			-- what is the 'standard' way of extracting the 'hyperlink' from the full link?
 			local linkString = string.match(self.appearanceLink, "transmogappearance[%-?%d:]+")
 			-- debug the whole jumpToVisualID stuff from https://github.com/tomrus88/BlizzardInterfaceCode/blob/49f059f549c48d5811b13771a52c8a4cfff3b227/Interface/AddOns/Blizzard_Collections/Blizzard_Wardrobe.lua
-			if CanIMogIt and CanIMogIt:IsValidAppearanceForCharacter(self.itemLink) then
-				WardrobeCollectionFrame_OpenTransmogLink(linkString);
-			end
+			WardrobeCollectionFrame_OpenTransmogLink(linkString);
 		end
 	end
 end
@@ -634,12 +671,97 @@ function IGWardrobeItemSlotButton_Update(button)
 	end
 end
 
+
+--[[
+local KNOWN =                                       L["Learned."]												Blue & Enabled
+local KNOWN_FROM_ANOTHER_ITEM =                     L["Learned from another item."]								Blue & Enabled
+local KNOWN_BY_ANOTHER_CHARACTER =                  L["Learned for a different class."]							Blue & Disabled
+local KNOWN_BUT_TOO_LOW_LEVEL =                     L["Learned but cannot transmog yet."]						Blue & Disabled
+local KNOWN_FROM_ANOTHER_ITEM_BUT_TOO_LOW_LEVEL =   L["Learned from another item but cannot transmog yet."]		Blue & Disabled
+local KNOWN_FROM_ANOTHER_ITEM_AND_CHARACTER =       L["Learned for a different class and item."]				Blue & Disabled
+local UNKNOWN =                                     L["Not learned."]											Orange & Enable
+local UNKNOWABLE_BY_CHARACTER =                     L["Another class can learn this item."]						Yellow & Disabl
+local UNKNOWABLE_BY_CHARACTER_SOULBOUND =           L["Cannot be learned by this character."]					Yellow & Disabl
+local CAN_BE_LEARNED_BY =                           L["Can be learned by:"] -- list of classes					not used
+local NOT_TRANSMOGABLE =                            L["Cannot be learned."]										Gray
+local CANNOT_DETERMINE =                            L["Cannot determine status on other characters."]			Yellow & Disabl
+]]--
+
+local KNOWN_YES =	1  -- Blue & Enabled
+local KNOWN_NO =	2  -- Blue & Disabled
+local NOTKNOWN_YES =3  -- Orange & Enabled
+local NOTKNOWN_NO = 4  -- Yellow & Disabled
+local CANTKNOW =	5
+
+function InspectorGadgetzan:ItemTransmogStatus(itemLink)
+	if CanIMogIt then
+		local status = CanIMogIt:GetTooltipText(itemLink)
+		if (
+			status == CanIMogIt.KNOWN or
+			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM
+		) then
+			return KNOWN_YES
+		elseif (
+			status == CanIMogIt.KNOWN_BY_ANOTHER_CHARACTER or
+			status == CanIMogIt.KNOWN_BUT_TOO_LOW_LEVEL or
+			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM_BUT_TOO_LOW_LEVEL or
+			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM_AND_CHARACTER
+		) then
+			return KNOWN_NO
+		elseif (
+			status == CanIMogIt.UNKNOWN
+		) then
+			return NOTKNOWN_YES
+		elseif (
+			status == CanIMogIt.UNKNOWABLE_BY_CHARACTER or
+			status == CanIMogIt.UNKNOWABLE_BY_CHARACTER_SOULBOUND or
+			status == CanIMogIt.CANNOT_DETERMINE
+		) then
+			return NOTKNOWN_NO
+		else
+			return CANTKNOW
+		end
+	else
+		return NOTKNOWN_NO
+	end
+end
+
+local itemTransmogStatues = {
+	[KNOWN_YES] = {
+		["color"] = BLUE,
+		["enabled"] = true,
+	},
+	[KNOWN_NO] = {
+		["color"] = BLUE,
+		["enabled"] = false,
+	},
+	[NOTKNOWN_YES] = {
+		["color"] = RED_ORANGE,
+		["enabled"] = true,
+	},
+	[NOTKNOWN_NO] = {
+		["color"] = YELLOW,
+		["enabled"] = false,
+	},
+	[CANTKNOW] = {
+		["color"] = GRAY,
+		["enabled"] = false,
+	},
+}
+
 -- Change the ItemText to match the links attached to it
 function IGWardrobeItemTextButton_Update(button)
-	local textureName;
 	if button.appearanceLink then
-		button:SetText(button.appearanceLink)
+		local itemTransmogStatus = InspectorGadgetzan:ItemTransmogStatus(button.itemLink)
+		local color = itemTransmogStatues[itemTransmogStatus].color
+		local enabled = itemTransmogStatues[itemTransmogStatus].enabled
+		button:SetText(color .. button.appearanceLink:match("%[.*%]"):gsub("%[", ""):gsub("%]",""))
 		button:Show()
+		if enabled then
+			button:Enable()
+		else
+			button:Disable()
+		end
 	else
 		button:Hide()
 	end

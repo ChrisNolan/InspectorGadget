@@ -6,7 +6,7 @@ Use this other addons ability to know about the item and your use of it to colou
 
 ### Notes
 
-* CanIMogIt:IsValidAppearanceForCharacter(itemLink)
+* CanIMogIt:IsValidAppearanceForCharacter(itemLink) -- this doesn't take into account class restrictions?  e.g. monk looking at druid only gear
 * CanIMogIt:PlayerKnowsTransmog(itemLink)
 * CanIMogIt:CharacterCanLearnTransmog(itemLink)
 * for my own tooltips I can use CanIMogIt:GetTooltipText(itemLink)
