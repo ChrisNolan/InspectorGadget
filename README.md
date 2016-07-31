@@ -15,7 +15,7 @@ With Inspector Gadgetzan, when you inspect another player you get a new tab alon
 
 Additionally if the person you are inspecting is mounted, it will show you the name of their current mount, and give you a button to see that mount in the mount journal. ![IG Screenshot](images/IG-Screenshot-1.jpg)
 
-New in v7.0.3.4 is the **"MogLog"**.  Have you unlocked an epic item and seen the message appear and wonder why that doesn't happen for every appearance?  Well the Inspector was on the case and now it does!  In addition, it will share with your guildies and party members who also have the addon.  Celebrate those unique drops, and keep hunting for additional sources of the same look to complete your collection.
+New in v7.0.3.4 is the **"MogLog"**.  Have you unlocked an epic item and seen the message appear and wonder why that doesn't happen for every appearance?  Well the Inspector was on the case and now it does!  In addition, it will share with your guildies and party members who also have the addon.  Celebrate those unique drops, and keep hunting for additional sources of the same look to complete your collection.  
 ![Mog Log Screenshot](images/MogLog-1.jpg)![Mog Log Screenshot](images/MogLog-3.jpg)
 
 To get the most out of the MogLog atm, create a new Chat Window (right click on "General" -> New Chat Window) and name it "Inspector Gadgetzan".  That way, all your collections will be in one spot, and not mixed up with all the other stuff happening.  I also choose settings of the new tab and turn off the other chat fields.  This configuration may change in a future release.
@@ -34,17 +34,15 @@ Inspector Gadgetzan gives you a few slash commands to use as well to help with y
 ## Development
 ### Where to find the AddOn
 
-* https://github.com/ChrisNolan/InspectorGadgetzan - Main development site
-* https://mods.curse.com/addons/wow/inspectorgadgetzan
-* http://wow.curseforge.com/addons/inspectorgadgetzan/
-* http://www.wowinterface.com/downloads/info24082-InspectorGadgetzan.html
+* [https://github.com/ChrisNolan/InspectorGadgetzan](https://github.com/ChrisNolan/InspectorGadgetzan) - Main development site
+* [https://mods.curse.com/addons/wow/inspectorgadgetzan](https://mods.curse.com/addons/wow/inspectorgadgetzan)
+* [http://www.wowinterface.com/downloads/info24082-InspectorGadgetzan.html](http://www.wowinterface.com/downloads/info24082-InspectorGadgetzan.html)
 
 ### Known Issues
 
 * no localization yet
-* colorization of shared new appearances not working fully.  i.e. line starts out green for guild but then resets after the link
 
-A gadget to improve access to information about players you encounter in World of Warcraft; such as what they are wearing, or which mount they are on writtey by Hiketeia of Emerald Dream-US.
+A gadget to improve access to information about players you encounter in World of Warcraft; such as what they are wearing, or which mount they are on written by Hiketeia of Emerald Dream-US.
 
 ### Contributors
 

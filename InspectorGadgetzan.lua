@@ -38,10 +38,53 @@ local format, strfind, strsub = string.format, string.find, string.sub
 local max = math.max
 
 -- Chat colors
-local CHAT_COLOR_PARTY 		= "AAAAFF" --,170,170,255,,0.666666667,0.666666667,1
-local CHAT_COLOR_RAID 		= "FF7F00" --,255,127,0,,1,0.498039216,0
-local CHAT_COLOR_GUILD 		= "40FF40" --,64,255,64,,0.250980392,1,0.250980392
-local CHAT_COLOR_WHISPER 	= "FF80FF" --,255,128,255,,1,0.501960784,1
+local CHAT_COLOR = {}
+CHAT_COLOR["SYSTEM"]		= {
+	["hex"] = "FFFF00",
+	["rgb"] = {
+		["r"] = 255, ["g"] = 255, ["b"] = 0,
+	},
+	["intensity"] = {
+		["r"] = 1, ["g"] = 1, ["b"] = 0,
+	},
+}
+CHAT_COLOR["PARTY"]		= {
+	["hex"] = "AAAAFF",
+	["rgb"] = {
+		["r"] = 170, ["g"] = 170, ["b"] = 255,
+	},
+	["intensity"] = {
+		["r"] = 0.666666667, ["g"] = 0.666666667, ["b"] = 1,
+	},
+}
+CHAT_COLOR["RAID"]		= {
+	["hex"] = "FF7F00",
+	["rgb"] = {
+		["r"] = 255, ["g"] = 127, ["b"] = 0,
+	},
+	["intensity"] = {
+		["r"] = 1, ["g"] = 0.498039216, ["b"] = 0,
+	},
+}
+CHAT_COLOR["GUILD"]		= {
+	["hex"] = "40FF40",
+	["rgb"] = {
+		["r"] = 64, ["g"] = 255, ["b"] = 64,
+	},
+	["intensity"] = {
+		["r"] = 0.250980392, ["g"] = 1, ["b"] = 0.250980392,
+	},
+}
+CHAT_COLOR["WHISPER"]		= {
+	["hex"] = "FF80FF",
+	["rgb"] = {
+		["r"] = 255, ["g"] = 128, ["b"] = 255,
+	},
+	["intensity"] = {
+		["r"] = 1, ["g"] = 0.501960784, ["b"] = 1,
+	},
+}
+CHAT_COLOR["INSTANCE"] = CHAT_COLOR["PARTY"]
 
 
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
@@ -92,6 +135,8 @@ local defaults = {
 	profile = {
 		minimap = {
 			hide = false,
+			-- setting a default position - the idea is so it won't be buried under all the other icons that start in the same spot which the user never moves
+			--   there is some concern this might break in non-stand UIs...
 			minimapPos = 11.8886764296701,
 		},
 		pickupMount = false,
@@ -154,15 +199,16 @@ end
 function InspectorGadgetzan:optionsToggleMinimap(info, val)
 	InspectorGadgetzan.db.profile.minimap.hide = not InspectorGadgetzan.db.profile.minimap.hide
 	if self.db.profile.minimap.hide then
-		addon.icon:Hide(addonName)
+		self.icon:Hide(addonName)
 	else
-		addon.icon:Show(addonName)
+		self.icon:Show(addonName)
 	end
 end
 
 function InspectorGadgetzan:OpenConfig()
 	InterfaceOptionsFrame_OpenToCategory(addonTitle)
 	-- need to call it a second time as there is a bug where the first time it won't switch - need Blizzard to fix
+	--   there is a function available in !BlizzBugsSuck which lets the single call work.  I'll stick with my kludge for now
 	InterfaceOptionsFrame_OpenToCategory(addonTitle)
 end
 
@@ -182,18 +228,14 @@ function InspectorGadgetzan:OnCommReceived(prefix, message, distribution, sender
     -- process the incoming message
 	if prefix == "NewAppearance" then
 		if sender ~= UnitName("player") then
-			local color
-			--self:Printf(self:ChatFrame(), "[%s] %s", sender, message)
-			-- TODO the color is reset to the default color -- I need to get the default color down the chain to the .AddMessage itself.  Need a new functions I think...
-			if distribution == "PARTY" then
-				color = CHAT_COLOR_PARTY
-			elseif distribution == "RAID" then
-				color = CHAT_COLOR_RAID
-			elseif distribution == "GUILD" then
-				color = CHAT_COLOR_GUILD
+			if message ~= self.lastCommMessage then
+				-- TODO make the 'sender' in the message a player link
+				self:Printcf(self:ChatFrame(), CHAT_COLOR[distribution].intensity, "[%s] %s|r", sender, message)
 			end
-			self:Printf(self:ChatFrame(), "|cff%s[%s] %s|r", color, sender, message)
+			self.lastCommMessage = message
 		end
+	else
+		if debugLevel then self:Print(prefix..message..distribution..sender) end
 	end
 end
 
@@ -590,6 +632,7 @@ function InspectorGadgetzanWardrobeFrame_OnEvent(self, event, ...)
 		-- wait half a second before switching tabs to let the inspect catch up with the item cache
 		-- really cludgy, but I need to do something like the LibInspect library which makes sure with a couple of passes that all the items I need are ready.
 		--  Low priority since who but me will use the quick look anyway?
+		--  With the LDB/Minimap now... more people will be going in this way so not as low as it was
 		C_Timer.After(0.5, function()
 				IGWardrobe_OnLoad()
 				InspectFrameTab_OnClick(InspectFrameTab5)
@@ -600,6 +643,7 @@ end
 
 -- Add an extra 'tab' to the bottom of the InspectFrame
 --   very problematic to other addons that also add tabs?
+--   how do I go about skinning it correctly for other UIs - thinking ElvUI specifically
 local function createInspectFrameTab()
 	-- TODO the LoadAddon stuff messed up the highlighting of this this button... come back to check this before commit
 	if not InspectFrameTab5 then
@@ -647,7 +691,6 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 	-- ERR_REVOKE_TRANSMOG_S = "%s has been removed from your appearance collection.";
 	local latestAppearanceID, latestAppearanceCategoryID = C_TransmogCollection.GetLatestAppearance();
 	if ( latestAppearanceID and latestAppearanceID ~= self.latestAppearanceID ) then
-		-- TODO there seems to be a bug when items are learned from drops?  Maybe an in combat problem, one of these calls not working?
 		self.latestAppearanceID = latestAppearanceID;
 		-- is a sourceID and appearanceID the same...? nope.  seems wrong to just pick one of the sources of the new appearance in order to get a link - should I give all possible ones?  Hmmm... could be neat to show the ones you know, and the sources you don't know yet?  Or is that overkill?
 		local sources = C_TransmogCollection.GetAppearanceSources(self.latestAppearanceID)
@@ -681,19 +724,27 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		elseif #unCollectedNames == 0 then
 			bonus_msg = "All sources of this appearance collected. "
 		end
-		self:Printf(self:ChatFrame(), bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
-		-- TODO add conditionals re: RAID/PARTY/INSTANCE as the 'RAID' fail-over probably won't work the way I expect in LFD dungeons and LFR raids.
+		self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
 		share_msg = format(SHARE_LEARN_TRANSMOG_S, bonus_share_msg, appearanceLink)
-		self:SendCommMessage("NewAppearance", share_msg, "RAID")
-		self:SendCommMessage("NewAppearance", share_msg, "GUILD")
+		if (IsInGuild()) then
+			self:SendCommMessage("NewAppearance", share_msg, "GUILD")
+		end
+		local groupFallthrough = IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup(LE_PARTY_CATEGORY_HOME) and "PARTY" or false
+		if groupFallthrough then
+			self:SendCommMessage("NewAppearance", share_msg, groupFallthrough)
+		end
 		if #unCollectedNames > 0 then
-			self:Printf(self:ChatFrame(), "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
+			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
 		end
 		self.latestAppearanceLink = appearanceLink
 	elseif latestAppearanceID == nil then
 		self.latestAppearanceLink = latestAppearanceID
-		-- TODO this is triggering on login sometimes -- gotta fix that.
-		self:Print(self:ChatFrame(), "An appearance has been removed from your appearance collection")
+		if self.firstTRANSMOG_COLLECTION_UPDATED then
+			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "An appearance has been removed from your appearance collection")
+		else
+			-- kludge to not give the message the first time through.  the event first when first loading
+			self.firstTRANSMOG_COLLECTION_UPDATED = true
+		end
 	end
 end
 
@@ -754,7 +805,7 @@ end
 -- Taken from AceConsole-3.0
 --   All I wanted to change was the Print function itself, but I dont have enough knowledage atm to do that so I have all 3 here.
 local tmp={}
-local function Print(self,frame,...)
+local function Print(self,frame,rgb,...)
 	local n=0
 	if self ~= AceConsole and InspectorGadgetzan:ChatFrame() == DEFAULT_CHAT_FRAME then
 		n=n+1
@@ -764,7 +815,11 @@ local function Print(self,frame,...)
 		n=n+1
 		tmp[n] = tostring(select(i, ...))
 	end
-	frame:AddMessage( tconcat(tmp," ",1,n) )
+	if rgb then
+		frame:AddMessage( tconcat(tmp," ",1,n), rgb.r, rgb.g, rgb.b )
+	else
+		frame:AddMessage( tconcat(tmp," ",1,n) )
+	end
 end
 
 --- Print to DEFAULT_CHAT_FRAME or given ChatFrame (anything with an .AddMessage function)
@@ -774,9 +829,9 @@ end
 function InspectorGadgetzan:Print(...)
 	local frame = ...
 	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
-		return Print(self, frame, select(2,...))
+		return Print(self, frame, nil, select(2,...))
 	else
-		return Print(self, DEFAULT_CHAT_FRAME, ...)
+		return Print(self, DEFAULT_CHAT_FRAME, nil, ...)
 	end
 end
 
@@ -789,8 +844,17 @@ end
 function InspectorGadgetzan:Printf(...)
 	local frame = ...
 	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
-		return Print(self, frame, format(select(2,...)))
+		return Print(self, frame, nil, format(select(2,...)))
 	else
-		return Print(self, DEFAULT_CHAT_FRAME, format(...))
+		return Print(self, DEFAULT_CHAT_FRAME, nil, format(...))
+	end
+end
+
+function InspectorGadgetzan:Printcf(...)
+	local frame = ...
+	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
+		return Print(self, frame, select(2,...), format(select(3,...)))
+	else
+		return Print(self, DEFAULT_CHAT_FRAME, select(1,...), format(select(2,...)))
 	end
 end

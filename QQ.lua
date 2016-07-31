@@ -249,3 +249,21 @@ function tbl2str(t)
 end
 
 -- print("|cffff80ffThis is pink |cff80ff80and this is green|r but now it should be pink again|r") -- it isn't
+
+function TestPrintcf()
+	distribution = "PARTY"
+	sender = "Yuz"
+	message = "This should work?"
+	print(CHAT_COLOR[distribution].rgb)
+
+	InspectorGadgetzan:Printcf(InspectorGadgetzan:ChatFrame(), CHAT_COLOR[distribution].intensity, "[%s] %s", sender, message)
+
+	InspectorGadgetzan:Printf(InspectorGadgetzan:ChatFrame(), "[%s] %s", sender, "No color given")
+end
+
+-- IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup(LE_PARTY_CATEGORY_HOME) and "PARTY" or "SAY"
+
+groupFallthrough = IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup(LE_PARTY_CATEGORY_HOME) and "PARTY" or false
+if groupFallthrough then self:SendCommMessage("NewAppearance", share_msg, groupFallthrough) end
+InspectorGadgetzan:SendCommMessage("TestMessage", "Anybody Home?", "PARTY")
+InspectorGadgetzan:SendCommMessage("NewAppearance", "Anybody Home?", "PARTY")
