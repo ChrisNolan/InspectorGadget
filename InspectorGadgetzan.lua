@@ -31,6 +31,18 @@ local UnitBuff = UnitBuff
 local UnitIsUnit = UnitIsUnit
 local UnitPlayerControlled = UnitPlayerControlled
 
+-- Lua APIs
+local tconcat, tostring, select = table.concat, tostring, select
+local type, pairs, error = type, pairs, error
+local format, strfind, strsub = string.format, string.find, string.sub
+local max = math.max
+
+-- Chat colors
+local CHAT_COLOR_PARTY 		= "AAAAFF" --,170,170,255,,0.666666667,0.666666667,1
+local CHAT_COLOR_RAID 		= "FF7F00" --,255,127,0,,1,0.498039216,0
+local CHAT_COLOR_GUILD 		= "40FF40" --,64,255,64,,0.250980392,1,0.250980392
+local CHAT_COLOR_WHISPER 	= "FF80FF" --,255,128,255,,1,0.501960784,1
+
 
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
 --   some other thoughts @ http://www.wowinterface.com/forums/showthread.php?t=39775&highlight=load+demand 
@@ -42,7 +54,7 @@ local debugLevel = nil
 
 local addonName = ...
 local addonTitle = select(2, GetAddOnInfo(addonName))
-InspectorGadgetzan = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
+InspectorGadgetzan = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0")
 local addon = InspectorGadgetzan
 
 -- configuration options
@@ -83,6 +95,7 @@ local defaults = {
 			minimapPos = 11.8886764296701,
 		},
 		pickupMount = false,
+		chatframeName = "Inspector Gadgetzan",
 	}
 }
 local optionsTable = LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, options, nil)
@@ -126,7 +139,8 @@ function InspectorGadgetzan:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New(addonName .. "DB", defaults, true) -- use global profile called 'Default'
 	options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 	AceConfigDialog:AddToBlizOptions(addonName, addonTitle)
-	self.icon:Register(addonName, addon.LDBstub, self.db.profile.minimap) 
+	self.icon:Register(addonName, addon.LDBstub, self.db.profile.minimap)
+	self:RegisterComm("NewAppearance")
 end
 
 function InspectorGadgetzan:OnEnable()
@@ -150,6 +164,37 @@ function InspectorGadgetzan:OpenConfig()
 	InterfaceOptionsFrame_OpenToCategory(addonTitle)
 	-- need to call it a second time as there is a bug where the first time it won't switch - need Blizzard to fix
 	InterfaceOptionsFrame_OpenToCategory(addonTitle)
+end
+
+function InspectorGadgetzan:ChatFrame()
+	local name = self.db.profile.chatframeName
+	local frame = DEFAULT_CHAT_FRAME
+	for i = 1, NUM_CHAT_WINDOWS do
+		n = FCF_GetChatWindowInfo(i)
+		if n == name then
+			frame = _G["ChatFrame"..i]
+		end
+	end
+	return frame
+end
+
+function InspectorGadgetzan:OnCommReceived(prefix, message, distribution, sender)
+    -- process the incoming message
+	if prefix == "NewAppearance" then
+		if sender ~= UnitName("player") then
+			local color
+			--self:Printf(self:ChatFrame(), "[%s] %s", sender, message)
+			-- TODO the color is reset to the default color -- I need to get the default color down the chain to the .AddMessage itself.  Need a new functions I think...
+			if distribution == "PARTY" then
+				color = CHAT_COLOR_PARTY
+			elseif distribution == "RAID" then
+				color = CHAT_COLOR_RAID
+			elseif distribution == "GUILD" then
+				color = CHAT_COLOR_GUILD
+			end
+			self:Printf(self:ChatFrame(), "|cff%s[%s] %s|r", color, sender, message)
+		end
+	end
 end
 
 local MountCache={};--  Stores our discovered mounts' spell IDs
@@ -210,13 +255,13 @@ function IGMount_Report(mount)
 		mount = IGMount("playertarget")
 	end
 	if mount then
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		if InspectorGadgetzan.db.profile.pickupMount then
 			C_MountJournal.Pickup(mount.index)
 		end
 		IGMount_Show(mount.index)
 	else
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: Not mounted")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted")
 	end
 end
 
@@ -227,10 +272,10 @@ end
 function IGMount_Clone()
 	local mount = IGMount("playertarget")
 	if mount then
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		C_MountJournal.SummonByID(mount.mountID)
 	else
-		DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Mount reports: Not mounted - Unable to clone.")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted - Unable to clone.")
 	end
 end
 
@@ -257,7 +302,7 @@ function IGInspect_Show()
 		InspectorGadgetzanWardrobeFrame:RegisterEvent("INSPECT_READY")
 		InspectUnit("target")
 	else
-		print("Invalid target/Target not found.")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.")
 	end
 end
 
@@ -298,13 +343,13 @@ local function IGInspectSourcesDump()
 	local appearanceSources = C_TransmogCollection.GetInspectSources()
 
 	if appearanceSources then
-		if debugLevel then DEFAULT_CHAT_FRAME:AddMessage("Inspector Gadgetzan Appearances Dump") end
+		if debugLevel then addon:Print(InspectorGadgetzan:ChatFrame(), "Appearances Dump") end
 		for i = 1, #appearanceSources do
 			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
 				-- TODO should I local these?
 				categoryID , appearanceID, unknownBoolean1, uiOrder, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
 				if debugLevel then
-					DEFAULT_CHAT_FRAME:AddMessage(format("%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink))
+					addon:Printf(InspectorGadgetzan:ChatFrame(), "%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink)
 					-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
 				end
 				-- TODO this is really ugly... iterate it ... is _G[] what I need?
@@ -359,7 +404,7 @@ local function IGInspectSourcesDump()
 			end
 		end
 	else
-		print("Inspector Gadgetzan not ready")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "not ready")
 	end
 end
 
@@ -575,7 +620,7 @@ end
 --------------------------------------------------------------------------------
 -- Event Handler
 --
-local events = { "INSPECT_READY", "PLAYER_LOGIN" }
+local events = { "INSPECT_READY", "PLAYER_LOGIN", "TRANSMOG_COLLECTION_UPDATED" }
 
 function InspectorGadgetzan:INSPECT_READY(...)
 	createInspectFrameTab()
@@ -583,6 +628,73 @@ end
 
 function InspectorGadgetzan:PLAYER_LOGIN(...)
 	buildMountCache()
+end
+
+function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
+	-- flattens a simple table to a string with a delimiter
+	--   gotta be a standard wayw to do this in lua, no? "tconcat" maybe?
+	local function tbl2str(t)
+		local s = ""
+		local delimiter = " / "
+		for k,v in pairs(t) do
+			s = s .. v .. delimiter
+		end
+		return string.gsub(s, delimiter .. "$", "")
+	end
+
+	-- ERR_LEARN_TRANSMOG_S = "%s has been added to your appearance collection.";
+	local SHARE_LEARN_TRANSMOG_S = "added %s%s to their appearance collection."
+	-- ERR_REVOKE_TRANSMOG_S = "%s has been removed from your appearance collection.";
+	local latestAppearanceID, latestAppearanceCategoryID = C_TransmogCollection.GetLatestAppearance();
+	if ( latestAppearanceID and latestAppearanceID ~= self.latestAppearanceID ) then
+		-- TODO there seems to be a bug when items are learned from drops?  Maybe an in combat problem, one of these calls not working?
+		self.latestAppearanceID = latestAppearanceID;
+		-- is a sourceID and appearanceID the same...? nope.  seems wrong to just pick one of the sources of the new appearance in order to get a link - should I give all possible ones?  Hmmm... could be neat to show the ones you know, and the sources you don't know yet?  Or is that overkill?
+		local sources = C_TransmogCollection.GetAppearanceSources(self.latestAppearanceID)
+		local sourceID
+		local bonus_msg, bonus_share_msg, share_msg = "", "", ""
+		local collectedNames = {}
+		local unCollectedNames = {}
+		if #sources > 1 then
+			for k, source in pairs(sources) do
+				-- source.{sourceType, name, isCollected, sourceID, quality}
+				if source.isCollected then
+					if not sourceID then sourceID = source.sourceID end
+					tinsert(collectedNames, source.name)
+				else
+					tinsert(unCollectedNames, source.name)
+				end
+			end
+		else
+			sourceID = sources[1].sourceID
+		end
+		local appearanceLink = select(7, C_TransmogCollection.GetAppearanceSourceInfo(sourceID))
+		-- substitute the text between the [] brackets with all the names for that appearance we know
+		if #collectedNames > 1 and #unCollectedNames > 0 then
+			appearanceLink = appearanceLink:gsub("%[.*%]", "["..tbl2str(collectedNames).."]")
+		end
+		-- if it is a unique appearance, or you have unlocked all the appearances, say so
+		if #sources == 1 then
+			bonus_msg = "Unique Appearance Unlocked - "
+			bonus_share_msg = " the unique "
+			-- TODO play a sound
+		elseif #unCollectedNames == 0 then
+			bonus_msg = "All sources of this appearance collected. "
+		end
+		self:Printf(self:ChatFrame(), bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
+		-- TODO add conditionals re: RAID/PARTY/INSTANCE as the 'RAID' fail-over probably won't work the way I expect in LFD dungeons and LFR raids.
+		share_msg = format(SHARE_LEARN_TRANSMOG_S, bonus_share_msg, appearanceLink)
+		self:SendCommMessage("NewAppearance", share_msg, "RAID")
+		self:SendCommMessage("NewAppearance", share_msg, "GUILD")
+		if #unCollectedNames > 0 then
+			self:Printf(self:ChatFrame(), "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
+		end
+		self.latestAppearanceLink = appearanceLink
+	elseif latestAppearanceID == nil then
+		self.latestAppearanceLink = latestAppearanceID
+		-- TODO this is triggering on login sometimes -- gotta fix that.
+		self:Print(self:ChatFrame(), "An appearance has been removed from your appearance collection")
+	end
 end
 
 for k, v in pairs(events) do
@@ -635,4 +747,50 @@ SLASH_INSPECTORGADGETZAN1 = "/inspectorgadgetzan"
 SLASH_INSPECTORGADGETZAN2 = "/ig"
 SlashCmdList["INSPECTORGADGETZAN"] = function(message)
 	DispatchCommand(message, IGCommandTable)
+end
+
+
+-------------------
+-- Taken from AceConsole-3.0
+--   All I wanted to change was the Print function itself, but I dont have enough knowledage atm to do that so I have all 3 here.
+local tmp={}
+local function Print(self,frame,...)
+	local n=0
+	if self ~= AceConsole and InspectorGadgetzan:ChatFrame() == DEFAULT_CHAT_FRAME then
+		n=n+1
+		tmp[n] = "|cff33ff99"..tostring( self ).."|r:"
+	end
+	for i=1, select("#", ...) do
+		n=n+1
+		tmp[n] = tostring(select(i, ...))
+	end
+	frame:AddMessage( tconcat(tmp," ",1,n) )
+end
+
+--- Print to DEFAULT_CHAT_FRAME or given ChatFrame (anything with an .AddMessage function)
+-- @paramsig [chatframe ,] ...
+-- @param chatframe Custom ChatFrame to print to (or any frame with an .AddMessage function)
+-- @param ... List of any values to be printed
+function InspectorGadgetzan:Print(...)
+	local frame = ...
+	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
+		return Print(self, frame, select(2,...))
+	else
+		return Print(self, DEFAULT_CHAT_FRAME, ...)
+	end
+end
+
+
+--- Formatted (using format()) print to DEFAULT_CHAT_FRAME or given ChatFrame (anything with an .AddMessage function)
+-- @paramsig [chatframe ,] "format"[, ...]
+-- @param chatframe Custom ChatFrame to print to (or any frame with an .AddMessage function)
+-- @param format Format string - same syntax as standard Lua format()
+-- @param ... Arguments to the format string
+function InspectorGadgetzan:Printf(...)
+	local frame = ...
+	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
+		return Print(self, frame, format(select(2,...)))
+	else
+		return Print(self, DEFAULT_CHAT_FRAME, format(...))
+	end
 end

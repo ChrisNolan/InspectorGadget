@@ -173,3 +173,79 @@ local function mountdump()
 		print(creatureName,"has a mountID of ",mounts[i])
 	end
 end
+
+
+-- notes on announcing new transmog...
+
+	elseif ( event == "TRANSMOG_COLLECTION_UPDATED" ) then
+		if ( not CollectionsJournal ) then
+			local latestAppearanceID, latestAppearanceCategoryID = C_TransmogCollection.GetLatestAppearance();
+			if ( latestAppearanceID and latestAppearanceID ~= self.latestAppearanceID ) then
+				self.latestAppearanceID = latestAppearanceID;
+				SetCVar("petJournalTab", 5);
+			end
+		end
+
+		
+		elseif ( event == "TRANSMOG_COLLECTION_UPDATED") then
+		WardrobeCollectionFrame_CheckLatestAppearance(true);
+		if ( self:IsVisible() ) then
+			WardrobeCollectionFrame_GetVisualsList();
+			WardrobeCollectionFrame_FilterVisuals();
+			WardrobeCollectionFrame_SortVisuals();
+			WardrobeCollectionFrame_Update();
+end
+
+function WardrobeCollectionFrame_CheckLatestAppearance(changeTab)
+	local latestAppearanceID, latestAppearanceCategoryID = C_TransmogCollection.GetLatestAppearance();
+	if ( WardrobeCollectionFrame.latestAppearanceID ~= latestAppearanceID ) then
+		WardrobeCollectionFrame.latestAppearanceID = latestAppearanceID;
+		WardrobeCollectionFrame.jumpToLatestAppearanceID = latestAppearanceID;
+		WardrobeCollectionFrame.jumpToLatestCategoryID = latestAppearanceCategoryID;
+
+		if ( changeTab and not CollectionsJournal:IsShown() ) then
+			CollectionsJournal_SetTab(CollectionsJournal, 5);
+		end
+	end
+end
+
+function appearanceLinkTest()
+	-- appearances for Yuz to test 13602/
+	local sources = C_TransmogCollection.GetAppearanceSources(13602)
+	-- print(string.gsub("asfsdf[blue]jweoiur","%[.*%]","[orange]"))
+	local collectedNames = {}
+	local collectedNamesStr = ""
+	local unCollectedNames = {}
+	local unCollectedNamesStr = ""
+	local sourceID
+	for k, source in pairs(sources) do
+		-- source.{sourceType, name, isCollected, sourceID, quality}
+		if source.isCollected then
+			if not sourceID then sourceID = source.sourceID end
+			tinsert(collectedNames, source.name)
+			print("Collected " .. source.name)
+		else
+			tinsert(unCollectedNames, source.name)
+			print("Uncollected " .. source.name)
+		end
+	end
+	print("Collected ".. tbl2str(collectedNames))
+	print("Uncollected ".. tbl2str(unCollectedNames))
+	local appearanceLink = select(7, C_TransmogCollection.GetAppearanceSourceInfo(sourceID))
+	print("The escaped link is: ", appearanceLink:gsub("|", "||"))
+	-- print(string.gsub("asfsdf[blue]jweoiur","%[.*%]","[orange]"))
+	appearanceLink = string.gsub(appearanceLink, "%[.*%]", "["..self.tbl2str(collectedNames).."]")
+	print("The escaped link is: ", appearanceLink:gsub("|", "||"))
+
+end
+
+function tbl2str(t)
+	local s = ""
+	local delimiter = " / "
+	for k,v in pairs(t) do
+		s = s .. v .. delimiter
+	end
+	return string.gsub(s, delimiter .. "$", "")
+end
+
+-- print("|cffff80ffThis is pink |cff80ff80and this is green|r but now it should be pink again|r") -- it isn't

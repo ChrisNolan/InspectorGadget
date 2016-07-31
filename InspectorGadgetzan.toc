@@ -1,10 +1,10 @@
 ## Title: Inspector|c2E0AFFFFGadgetzan|r
-## Notes: Inspect another's Wardrobe Appearances and current Mount.  What else is in his hat?
+## Notes: Track appearances as they unlock, inspect another's Wardrobe Appearances & current Mount... What else is in his hat?
 ## Author: Hiketeia
 ## X-License: MIT
 
 ## Interface: 70000
-## Version: 7.0.3.3
+## Version: 7.0.3.4
 
 ## DefaultState: enabled
 ## SavedVariables: InspectorGadgetzanDB
