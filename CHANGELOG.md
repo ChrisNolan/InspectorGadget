@@ -1,5 +1,15 @@
 # Changelog
 
+## v7.0.3.4
+
+### 'MogLog' Know when you unlock *any* transmogrification appearance, not just the epic ones, and tell your friends.
+
+* Report on new appearances
+* Use "Inspector Gadgetzan" chat frame if one exists
+* Addon name not show in special chat
+* Share automatically new appearances with party
+* tweaking new appearances messages
+
 ## v7.0.3.3
 
 ### LDB & Minimap, Interface Options Panel Added
