@@ -30,7 +30,25 @@ The new profession recipe learned 'toast' type popup is kinda neat too.  Conside
 
 When looking at anothers appearance be able to rate it / share it / steal it.
 
-Integrate Jen's requirements doc/user stories to this file.
+### Mewren's 'User Stories for Fashion Rating features'
+
+As a user, I can rate another user that I am inspecting with the following levels:
+
+* Jenkins Inspired
+* Someone call the Fashion Police
+* Well Pulled Together
+* Fashion Diva
+* Fashion Expert
+* Fashion God
+
+
+As a user, I can share the fashion level with people through various channels (/party, /intance, /raid, /say, /tell)  "Ruaha has rated Naxder's appearance as "Fashion Expert" using InspectorGadgetzan"
+
+As a user, I can see my accumulated score  (5x Fashion God,  3x Fashion Diva, ....)
+
+As a user, I can share my accumulated score through various channels (otherwise my score is private)
+
+As a user, I can view the leaderboard of top 10 rated players for this week
 
 Host a fashion show in-game as a launch party.
 
@@ -40,4 +58,28 @@ When someone in your party rates another, you also see it in the same place the 
 
 ## Transformation report
 
-The original 3rd feature. With all the toys that let your transform into different things, it is hard to know where it came from.  Report on this like we report on the mount they are riding, and give a quick way to clone them.  Maybe even pop-up so and so just transformed into this, would you like to as well?  Don't do that in combat though.  But all those Gamons at the right time... hmmm...
+The original 3rd feature (whoops now that I found my paper work, this wasn't on the list at all). With all the toys that let your transform into different things, it is hard to know where it came from.  Report on this like we report on the mount they are riding, and give a quick way to clone them.  Maybe even pop-up so and so just transformed into this, would you like to as well?  Don't do that in combat though.  But all those Gamons at the right time... hmmm...
+
+# "Inspector Gadget" - New WoW Addon - April 12 2016
+
+Name subject to change - but applies because it is enhaucning the "Inspect", it is a gadget, and people know the character named that.
+
+Goal: Improve access to information about players you encounter.
+
+Possibily split into modules.
+
+## Module 1: Mounts
+
+Story: I regularly see mount sin the world that I'm curious about.  I target the player, hover over their buffs, find the one that seems to be the mount buff, and then look it up elsewhere - either online, or in the mount journal.  -> provide a button, or slash command, or popup to do this
+
+## Module 2: iLvls
+
+Story: When grouping with people, especially in pugs etc, iLvl is a common baseline to know about them.  EvUI has the avility to shift hover, and the player tooltip gets it included.  I will often do this for a bunch of the people when the instance starts.  I'll also check their specs too.  When leveling - heirloom bonuses etc.
+
+-> give me a summary of everyone in the group.  While at i tmaybe show 'dungeon experience' e.g. # of boss kills, or achieves for that boss, etc
+
+## Module 3: Wardrobe
+
+Story: I like to know about the gear people have transmogged.  I have to inspect them, hover over each equipment slot, read the name of the transmog, then go look it up online.
+
+-> extra frame in inspect which shows the details.  Improve for Legion to show collectability, ina set, etc. 
