@@ -249,3 +249,14 @@ function tbl2str(t)
 end
 
 -- print("|cffff80ffThis is pink |cff80ff80and this is green|r but now it should be pink again|r") -- it isn't
+
+function TestPrintcf()
+	distribution = "PARTY"
+	sender = "Yuz"
+	message = "This should work?"
+	print(CHAT_COLOR[distribution].rgb)
+
+	InspectorGadgetzan:Printcf(InspectorGadgetzan:ChatFrame(), CHAT_COLOR[distribution].intensity, "[%s] %s", sender, message)
+
+	InspectorGadgetzan:Printf(InspectorGadgetzan:ChatFrame(), "[%s] %s", sender, "No color given")
+end

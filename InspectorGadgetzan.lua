@@ -38,10 +38,44 @@ local format, strfind, strsub = string.format, string.find, string.sub
 local max = math.max
 
 -- Chat colors
-local CHAT_COLOR_PARTY 		= "AAAAFF" --,170,170,255,,0.666666667,0.666666667,1
-local CHAT_COLOR_RAID 		= "FF7F00" --,255,127,0,,1,0.498039216,0
-local CHAT_COLOR_GUILD 		= "40FF40" --,64,255,64,,0.250980392,1,0.250980392
-local CHAT_COLOR_WHISPER 	= "FF80FF" --,255,128,255,,1,0.501960784,1
+local CHAT_COLOR = {}
+CHAT_COLOR["PARTY"]		= {
+	["hex"] = "AAAAFF",
+	["rgb"] = {
+		["r"] = 170, ["g"] = 170, ["b"] = 255,
+	},
+	["intensity"] = {
+		["r"] = 0.666666667, ["g"] = 0.666666667, ["b"] = 1,
+	},
+}
+CHAT_COLOR["RAID"]		= {
+	["hex"] = "FF7F00",
+	["rgb"] = {
+		["r"] = 255, ["g"] = 127, ["b"] = 0,
+	},
+	["intensity"] = {
+		["r"] = 1, ["g"] = 0.498039216, ["b"] = 0,
+	},
+}
+CHAT_COLOR["GUILD"]		= {
+	["hex"] = "40FF40",
+	["rgb"] = {
+		["r"] = 64, ["g"] = 255, ["b"] = 64,
+	},
+	["intensity"] = {
+		["r"] = 0.250980392, ["g"] = 1, ["b"] = 0.250980392,
+	},
+}
+CHAT_COLOR["WHISPER"]		= {
+	["hex"] = "FF80FF",
+	["rgb"] = {
+		["r"] = 255, ["g"] = 128, ["b"] = 255,
+	},
+	["intensity"] = {
+		["r"] = 1, ["g"] = 0.501960784, ["b"] = 1,
+	},
+}
+CHAT_COLOR["INSTANCE"] = CHAT_COLOR["PARTY"]
 
 
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
@@ -185,17 +219,9 @@ function InspectorGadgetzan:OnCommReceived(prefix, message, distribution, sender
     -- process the incoming message
 	if prefix == "NewAppearance" then
 		if sender ~= UnitName("player") then
-			local color
 			--self:Printf(self:ChatFrame(), "[%s] %s", sender, message)
 			-- TODO the color is reset to the default color -- I need to get the default color down the chain to the .AddMessage itself.  Need a new functions I think...
-			if distribution == "PARTY" then
-				color = CHAT_COLOR_PARTY
-			elseif distribution == "RAID" then
-				color = CHAT_COLOR_RAID
-			elseif distribution == "GUILD" then
-				color = CHAT_COLOR_GUILD
-			end
-			self:Printf(self:ChatFrame(), "|cff%s[%s] %s|r", color, sender, message)
+			self:Printcf(self:ChatFrame(), CHAT_COLOR[distribution].intensity, "[%s] %s|r", sender, message)
 		end
 	end
 end
@@ -759,7 +785,7 @@ end
 -- Taken from AceConsole-3.0
 --   All I wanted to change was the Print function itself, but I dont have enough knowledage atm to do that so I have all 3 here.
 local tmp={}
-local function Print(self,frame,...)
+local function Print(self,frame,rgb,...)
 	local n=0
 	if self ~= AceConsole and InspectorGadgetzan:ChatFrame() == DEFAULT_CHAT_FRAME then
 		n=n+1
@@ -769,7 +795,11 @@ local function Print(self,frame,...)
 		n=n+1
 		tmp[n] = tostring(select(i, ...))
 	end
-	frame:AddMessage( tconcat(tmp," ",1,n) )
+	if rgb then
+		frame:AddMessage( tconcat(tmp," ",1,n), rgb.r, rgb.g, rgb.b )
+	else
+		frame:AddMessage( tconcat(tmp," ",1,n) )
+	end
 end
 
 --- Print to DEFAULT_CHAT_FRAME or given ChatFrame (anything with an .AddMessage function)
@@ -779,9 +809,9 @@ end
 function InspectorGadgetzan:Print(...)
 	local frame = ...
 	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
-		return Print(self, frame, select(2,...))
+		return Print(self, frame, nil, select(2,...))
 	else
-		return Print(self, DEFAULT_CHAT_FRAME, ...)
+		return Print(self, DEFAULT_CHAT_FRAME, nil, ...)
 	end
 end
 
@@ -794,8 +824,17 @@ end
 function InspectorGadgetzan:Printf(...)
 	local frame = ...
 	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
-		return Print(self, frame, format(select(2,...)))
+		return Print(self, frame, nil, format(select(2,...)))
 	else
-		return Print(self, DEFAULT_CHAT_FRAME, format(...))
+		return Print(self, DEFAULT_CHAT_FRAME, nil, format(...))
+	end
+end
+
+function InspectorGadgetzan:Printcf(...)
+	local frame = ...
+	if type(frame) == "table" and frame.AddMessage then	-- Is first argument something with an .AddMessage member?
+		return Print(self, frame, select(2,...), format(select(3,...)))
+	else
+		return Print(self, DEFAULT_CHAT_FRAME, select(1,...), format(select(2,...)))
 	end
 end

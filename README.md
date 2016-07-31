@@ -41,7 +41,6 @@ Inspector Gadgetzan gives you a few slash commands to use as well to help with y
 ### Known Issues
 
 * no localization yet
-* colorization of shared new appearances not working fully.  i.e. line starts out green for guild but then resets after the link
 
 A gadget to improve access to information about players you encounter in World of Warcraft; such as what they are wearing, or which mount they are on written by Hiketeia of Emerald Dream-US.
 
