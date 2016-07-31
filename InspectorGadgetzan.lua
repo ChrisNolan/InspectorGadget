@@ -399,49 +399,63 @@ local function IGInspectSourcesDump()
 				if     categoryID == 1 then
 					InspectorGadgetzanWardrobeHeadSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeHeadText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeHeadText.itemLink = itemLink
 				elseif categoryID == 2 then 
 					InspectorGadgetzanWardrobeShoulderSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeShoulderText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeShoulderText.itemLink = itemLink
 				elseif categoryID == 3 then
 					InspectorGadgetzanWardrobeBackSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeBackText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeBackText.itemLink = itemLink
 				elseif categoryID == 4 then
 					InspectorGadgetzanWardrobeChestSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeChestText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeChestText.itemLink = itemLink
 				elseif categoryID == 5 then
 					InspectorGadgetzanWardrobeShirtSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeShirtText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeShirtText.itemLink = itemLink
 				elseif categoryID == 6 then
 					InspectorGadgetzanWardrobeTabardSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeTabardText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeTabardText.itemLink = itemLink
 				elseif categoryID == 7 then
 					InspectorGadgetzanWardrobeWristSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeWristText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeWristText.itemLink = itemLink
 				elseif categoryID == 8 then
 					InspectorGadgetzanWardrobeHandsSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeHandsText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeHandsText.itemLink = itemLink
 				elseif categoryID == 9 then
 					InspectorGadgetzanWardrobeWaistSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeWaistText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeWaistText.itemLink = itemLink
 				elseif categoryID ==10 then
 					InspectorGadgetzanWardrobeLegsSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeLegsText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeLegsText.itemLink = itemLink
 				elseif categoryID ==11 then
 					InspectorGadgetzanWardrobeFeetSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeFeetText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeFeetText.itemLink = itemLink
 				end
 				if (transmogCategories[categoryID].slot == "MainHand") then
 					-- if it already has something in the mainhand, assume it is a dualwielder
 					if InspectorGadgetzanWardrobeMainHandSlot.itemLink then
 						InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
 						InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
+						InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
 					else
 						InspectorGadgetzanWardrobeMainHandSlot.itemLink = itemLink
 						InspectorGadgetzanWardrobeMainHandText.appearanceLink = appearanceLink
+						InspectorGadgetzanWardrobeMainHandText.itemLink = itemLink
 					end
 				elseif transmogCategories[categoryID].slot == "SecondaryHand" then
 					InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
 				end
 			end
 		end
@@ -477,6 +491,21 @@ function IGWardrobeItemSlotButton_OnEnter(self)
 	CursorUpdate(self);
 end
 
+-- Deals with Tooltips when you mouse over an ItemText
+function IGWardrobeItemTextButton_OnEnter(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+	local tooltipSet = false
+	if self.itemLink and CanIMogIt then
+		--tooltipSet = GameTooltip:SetHyperlink(self.itemLink)
+		tooltipSet = GameTooltip:SetText(CanIMogIt:GetTooltipText(self.itemLink))
+		-- I want to catch of hte tooltip doesn't get set, but the flag needs work
+	else
+		local text = _G[strupper(strsub(self:GetName(), 27))]; -- 27 is hardcode of string.len("InspectorGadgetzanWardrobe")+1) why do the math after all
+		GameTooltip:SetText(text);
+	end
+	CursorUpdate(self);
+end
+
 -- Click handler to launch the wardrobe collection window
 function IGWardrobeItemTextButton_OnClick(self)
 	-- code from FrameXML/ItemRef.lua's "transmogappearance" handler
@@ -488,7 +517,9 @@ function IGWardrobeItemTextButton_OnClick(self)
 			-- what is the 'standard' way of extracting the 'hyperlink' from the full link?
 			local linkString = string.match(self.appearanceLink, "transmogappearance[%-?%d:]+")
 			-- debug the whole jumpToVisualID stuff from https://github.com/tomrus88/BlizzardInterfaceCode/blob/49f059f549c48d5811b13771a52c8a4cfff3b227/Interface/AddOns/Blizzard_Collections/Blizzard_Wardrobe.lua
-			WardrobeCollectionFrame_OpenTransmogLink(linkString);
+			if CanIMogIt and CanIMogIt:IsValidAppearanceForCharacter(self.itemLink) then
+				WardrobeCollectionFrame_OpenTransmogLink(linkString);
+			end
 		end
 	end
 end

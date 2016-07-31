@@ -94,7 +94,7 @@
 				end
 			</OnUpdate>
             <OnEnter>
-				--IGWardrobeItemTextButton_OnEnter(self, motion);
+				IGWardrobeItemTextButton_OnEnter(self, motion);
 			</OnEnter>
             <OnLeave>
 				GameTooltip:Hide();

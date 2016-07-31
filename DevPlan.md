@@ -4,6 +4,13 @@
 
 Use this other addons ability to know about the item and your use of it to colourize or indicate in some way on the wardrobe inspect screen your relation to the items you are looking at.  i.e. can you use that appearance, do you know that appearance etc.
 
+### Notes
+
+* CanIMogIt:IsValidAppearanceForCharacter(itemLink)
+* CanIMogIt:PlayerKnowsTransmog(itemLink)
+* CanIMogIt:CharacterCanLearnTransmog(itemLink)
+* for my own tooltips I can use CanIMogIt:GetTooltipText(itemLink)
+
 ## Inspect yourself
 
 Turn Gadgetzan on you.
