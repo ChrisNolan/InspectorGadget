@@ -260,3 +260,10 @@ function TestPrintcf()
 
 	InspectorGadgetzan:Printf(InspectorGadgetzan:ChatFrame(), "[%s] %s", sender, "No color given")
 end
+
+-- IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup(LE_PARTY_CATEGORY_HOME) and "PARTY" or "SAY"
+
+groupFallthrough = IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup(LE_PARTY_CATEGORY_HOME) and "PARTY" or false
+if groupFallthrough then self:SendCommMessage("NewAppearance", share_msg, groupFallthrough) end
+InspectorGadgetzan:SendCommMessage("TestMessage", "Anybody Home?", "PARTY")
+InspectorGadgetzan:SendCommMessage("NewAppearance", "Anybody Home?", "PARTY")

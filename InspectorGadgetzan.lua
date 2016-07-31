@@ -39,6 +39,15 @@ local max = math.max
 
 -- Chat colors
 local CHAT_COLOR = {}
+CHAT_COLOR["SYSTEM"]		= {
+	["hex"] = "FFFF00",
+	["rgb"] = {
+		["r"] = 255, ["g"] = 255, ["b"] = 0,
+	},
+	["intensity"] = {
+		["r"] = 1, ["g"] = 1, ["b"] = 0,
+	},
+}
 CHAT_COLOR["PARTY"]		= {
 	["hex"] = "AAAAFF",
 	["rgb"] = {
@@ -219,10 +228,14 @@ function InspectorGadgetzan:OnCommReceived(prefix, message, distribution, sender
     -- process the incoming message
 	if prefix == "NewAppearance" then
 		if sender ~= UnitName("player") then
-			--self:Printf(self:ChatFrame(), "[%s] %s", sender, message)
-			-- TODO the color is reset to the default color -- I need to get the default color down the chain to the .AddMessage itself.  Need a new functions I think...
-			self:Printcf(self:ChatFrame(), CHAT_COLOR[distribution].intensity, "[%s] %s|r", sender, message)
+			if message ~= self.lastCommMessage then
+				-- TODO make the 'sender' in the message a player link
+				self:Printcf(self:ChatFrame(), CHAT_COLOR[distribution].intensity, "[%s] %s|r", sender, message)
+			end
+			self.lastCommMessage = message
 		end
+	else
+		if debugLevel then self:Print(prefix..message..distribution..sender) end
 	end
 end
 
@@ -678,7 +691,6 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 	-- ERR_REVOKE_TRANSMOG_S = "%s has been removed from your appearance collection.";
 	local latestAppearanceID, latestAppearanceCategoryID = C_TransmogCollection.GetLatestAppearance();
 	if ( latestAppearanceID and latestAppearanceID ~= self.latestAppearanceID ) then
-		-- TODO there seems to be a bug when items are learned from drops?  Maybe an in combat problem, one of these calls not working?
 		self.latestAppearanceID = latestAppearanceID;
 		-- is a sourceID and appearanceID the same...? nope.  seems wrong to just pick one of the sources of the new appearance in order to get a link - should I give all possible ones?  Hmmm... could be neat to show the ones you know, and the sources you don't know yet?  Or is that overkill?
 		local sources = C_TransmogCollection.GetAppearanceSources(self.latestAppearanceID)
@@ -712,19 +724,27 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		elseif #unCollectedNames == 0 then
 			bonus_msg = "All sources of this appearance collected. "
 		end
-		self:Printf(self:ChatFrame(), bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
-		-- TODO add conditionals re: RAID/PARTY/INSTANCE as the 'RAID' fail-over probably won't work the way I expect in LFD dungeons and LFR raids.
+		self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
 		share_msg = format(SHARE_LEARN_TRANSMOG_S, bonus_share_msg, appearanceLink)
-		self:SendCommMessage("NewAppearance", share_msg, "RAID")
-		self:SendCommMessage("NewAppearance", share_msg, "GUILD")
+		if (IsInGuild()) then
+			self:SendCommMessage("NewAppearance", share_msg, "GUILD")
+		end
+		local groupFallthrough = IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup(LE_PARTY_CATEGORY_HOME) and "PARTY" or false
+		if groupFallthrough then
+			self:SendCommMessage("NewAppearance", share_msg, groupFallthrough)
+		end
 		if #unCollectedNames > 0 then
-			self:Printf(self:ChatFrame(), "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
+			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
 		end
 		self.latestAppearanceLink = appearanceLink
 	elseif latestAppearanceID == nil then
 		self.latestAppearanceLink = latestAppearanceID
-		-- TODO this is triggering on login sometimes -- gotta fix that.
-		self:Print(self:ChatFrame(), "An appearance has been removed from your appearance collection")
+		if self.firstTRANSMOG_COLLECTION_UPDATED then
+			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "An appearance has been removed from your appearance collection")
+		else
+			-- kludge to not give the message the first time through.  the event first when first loading
+			self.firstTRANSMOG_COLLECTION_UPDATED = true
+		end
 	end
 end
 
