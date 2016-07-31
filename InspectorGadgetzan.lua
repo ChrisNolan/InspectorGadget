@@ -643,38 +643,56 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 	end
 
 	-- ERR_LEARN_TRANSMOG_S = "%s has been added to your appearance collection.";
-	local SHARE_LEARN_TRANSMOG_S = "added %s to their appearance collection."
+	local SHARE_LEARN_TRANSMOG_S = "added %s%s to their appearance collection."
 	-- ERR_REVOKE_TRANSMOG_S = "%s has been removed from your appearance collection.";
 	local latestAppearanceID, latestAppearanceCategoryID = C_TransmogCollection.GetLatestAppearance();
 	if ( latestAppearanceID and latestAppearanceID ~= self.latestAppearanceID ) then
+		-- TODO there seems to be a bug when items are learned from drops?  Maybe an in combat problem, one of these calls not working?
 		self.latestAppearanceID = latestAppearanceID;
 		-- is a sourceID and appearanceID the same...? nope.  seems wrong to just pick one of the sources of the new appearance in order to get a link - should I give all possible ones?  Hmmm... could be neat to show the ones you know, and the sources you don't know yet?  Or is that overkill?
 		local sources = C_TransmogCollection.GetAppearanceSources(self.latestAppearanceID)
 		local sourceID
+		local bonus_msg, bonus_share_msg, share_msg = "", "", ""
 		local collectedNames = {}
 		local unCollectedNames = {}
-		for k, source in pairs(sources) do
-			-- source.{sourceType, name, isCollected, sourceID, quality}
-			if source.isCollected then
-				if not sourceID then sourceID = source.sourceID end
-				tinsert(collectedNames, source.name)
-			else
-				tinsert(unCollectedNames, source.name)
+		if #sources > 1 then
+			for k, source in pairs(sources) do
+				-- source.{sourceType, name, isCollected, sourceID, quality}
+				if source.isCollected then
+					if not sourceID then sourceID = source.sourceID end
+					tinsert(collectedNames, source.name)
+				else
+					tinsert(unCollectedNames, source.name)
+				end
 			end
+		else
+			sourceID = sources[1].sourceID
 		end
 		local appearanceLink = select(7, C_TransmogCollection.GetAppearanceSourceInfo(sourceID))
 		-- substitute the text between the [] brackets with all the names for that appearance we know
-		appearanceLink = appearanceLink:gsub("%[.*%]", "["..tbl2str(collectedNames).."]")
-		-- TODO if it is a unique appearance, or you have unlocked all the appearances, say so
-		self:Printf(self:ChatFrame(), ERR_LEARN_TRANSMOG_S, appearanceLink)
-		self:SendCommMessage("NewAppearance", format(SHARE_LEARN_TRANSMOG_S, appearanceLink), "RAID")
-		self:SendCommMessage("NewAppearance", format(SHARE_LEARN_TRANSMOG_S, appearanceLink), "GUILD")
+		if #collectedNames > 1 and #unCollectedNames > 0 then
+			appearanceLink = appearanceLink:gsub("%[.*%]", "["..tbl2str(collectedNames).."]")
+		end
+		-- if it is a unique appearance, or you have unlocked all the appearances, say so
+		if #sources == 1 then
+			bonus_msg = "Unique Appearance Unlocked - "
+			bonus_share_msg = " the unique "
+			-- TODO play a sound
+		elseif #unCollectedNames == 0 then
+			bonus_msg = "All sources of this appearance collected. "
+		end
+		self:Printf(self:ChatFrame(), bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
+		-- TODO add conditionals re: RAID/PARTY/INSTANCE as the 'RAID' fail-over probably won't work the way I expect in LFD dungeons and LFR raids.
+		share_msg = format(SHARE_LEARN_TRANSMOG_S, bonus_share_msg, appearanceLink)
+		self:SendCommMessage("NewAppearance", share_msg, "RAID")
+		self:SendCommMessage("NewAppearance", share_msg, "GUILD")
 		if #unCollectedNames > 0 then
 			self:Printf(self:ChatFrame(), "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
 		end
 		self.latestAppearanceLink = appearanceLink
 	elseif latestAppearanceID == nil then
 		self.latestAppearanceLink = latestAppearanceID
+		-- TODO this is triggering on login sometimes -- gotta fix that.
 		self:Print(self:ChatFrame(), "An appearance has been removed from your appearance collection")
 	end
 end
