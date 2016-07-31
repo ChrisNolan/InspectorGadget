@@ -10,15 +10,15 @@ Turn Gadgetzan on you.
 
 ## New appearances announcement
 
-The default UI only announces to yourself when you learn a new epic appearance.  We want that knowledge for all new appearances regardless of rarity of the source item.
+~~The default UI only announces to yourself when you learn a new epic appearance.  We want that knowledge for all new appearances regardless of rarity of the source item.~~
 
-I'd like to be able to have this 'transmog-log' available as a history too -- but instead of its own seperate window, what about using the chat log?  Though it's own window has the bonus of being able to skin it etc.  Do we save this history and or a summary? e.g. you've learned 19 new appearances this session.  Make a distinction between first time you get an appearance vs getting a secondary source of an appearance already know.
+~~I'd like to be able to have this 'transmog-log' available as a history too -- but instead of its own seperate window, what about using the chat log?  Though it's own window has the bonus of being able to skin it etc.  Do we save this history and or a summary? e.g. you've learned 19 new appearances this session.  Make a distinction between first time you get an appearance vs getting a secondary source of an appearance already know.~~  Still a chat window for now, in the future look at ScrollingMessageFrame and also saving the entries between sessions.
 
 The new profession recipe learned 'toast' type popup is kinda neat too.  Consider extending to allow for that type of pop up.
 
-Be sure to find the event for loosing an appearnce too so if you sell something back for example you will be told too.
+~~Be sure to find the event for loosing an appearance too so if you sell something back for example you will be told too.~~ The detail doesn't seem to be available :-(
 
-When your group members get a new appearance report show that as well (via the AceComms - they'll need the addon to see your announcements most likly - depending on how the event works.)
+~~When your group members get a new appearance report show that as well (via the AceComms - they'll need the addon to see your announcements most likly - depending on how the event works.)~~
 
 ### Notes
 
