@@ -87,8 +87,9 @@ CHAT_COLOR["WHISPER"]		= {
 CHAT_COLOR["INSTANCE_CHAT"] = CHAT_COLOR["PARTY"]
 
 local BLUE =   "|cff15abff"
---local BLUE_GREEN = "|cff009e73"
+local BLUE_GREEN = "|cff009e73"
 --local PINK = "|cffcc79a7"
+local RED_DULL = "|cffCF1515"-- "|cff820000"
 --local ORANGE = "|cffe69f00"
 local RED_ORANGE = "|cffff9333"
 local YELLOW = "|cfff0e442"
@@ -512,7 +513,7 @@ local function IGInspectSourcesDump()
 					InspectorGadgetzanWardrobeFeetText.sourceID = appearanceSources[i]
 					InspectorGadgetzanWardrobeFeetText.slotID = INVSLOT_FEET
 				end
-				if (transmogCategories[categoryID].slot == "MainHand") then
+				if (transmogCategories[categoryID] and transmogCategories[categoryID].slot == "MainHand") then
 					-- if it already has something in the mainhand, assume it is a dualwielder
 					if InspectorGadgetzanWardrobeMainHandSlot.itemLink then
 						InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
@@ -529,7 +530,7 @@ local function IGInspectSourcesDump()
 						InspectorGadgetzanWardrobeMainHandText.sourceID = appearanceSources[i]
 						InspectorGadgetzanWardrobeMainHandText.slotID = INVSLOT_MAINHAND
 					end
-				elseif transmogCategories[categoryID].slot == "SecondaryHand" then
+				elseif transmogCategories[categoryID] and transmogCategories[categoryID].slot == "SecondaryHand" then
 					InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
@@ -546,6 +547,26 @@ end
 
 function IGWardrobeViewButton_OnLoad(self)
 	self:SetWidth(30 + self:GetFontString():GetStringWidth());
+end
+
+-- Deals with Tooltips when you mouse over
+function IGWardrobeViewButton_OnEnter(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:AddLine("Try on in the Dressing Room")
+	if not(CanIMogIt) then
+		GameTooltip:AddLine("Seeing all "..RED_DULL.."RED|r?", 1.0,1.0,1.0)
+		GameTooltip:AddLine("Please install/enable "..YELLOW.."CanIMogIt|r Addon to enable these features fully", 1.0,1.0,1.0)
+	else
+		GameTooltip:AddLine("* 'All' will try on all appearances", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'Wearable' will only try on the "..BLUE.."blue|r and "..BLUE_GREEN.."green|r highlighted items.  These are the ones which work for your class.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'In Collection' will try on the "..BLUE.."blue|r appearances, regardless of class, which works well imagining what it'll look like on an alt.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("The "..RED_DULL.."red|r items are not known to you, and aren't learnable by this character.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("If I need such a long tooltip, I need to re-think the UI, eh?")
+	end
+	GameTooltip:Show()
+	CursorUpdate(self)
 end
 
 --[[
@@ -614,6 +635,8 @@ local NOTKNOWN_NO = 4  -- Yellow & Disabled
 local CANTKNOW =	5
 
 function InspectorGadgetzan:ItemTransmogStatus(itemLink)
+	local itemID = GetItemInfoInstant(itemLink)
+	if itemID == 134110 or itemID == 134111 or itemID == 134112 then return KNOWN_YES end -- Hack for the 'Hidden Helm/Cloak/Shoulders'
 	if CanIMogIt then
 		local status = CanIMogIt:GetTooltipText(itemLink)
 		if (
@@ -656,11 +679,11 @@ local itemTransmogStatues = {
 		["enabled"] = false,
 	},
 	[NOTKNOWN_YES] = {
-		["color"] = RED_ORANGE,
+		["color"] = BLUE_GREEN,
 		["enabled"] = true,
 	},
 	[NOTKNOWN_NO] = {
-		["color"] = YELLOW,
+		["color"] = RED_DULL,
 		["enabled"] = false,
 	},
 	[CANTKNOW] = {
@@ -762,7 +785,7 @@ function DropDownMenuTryOn_OnLoad(self)
 	UIDropDownMenu_Initialize(DropDownMenuTryOn, initialize)
 	UIDropDownMenu_SetWidth(DropDownMenuTryOn, 80);
 	UIDropDownMenu_SetButtonWidth(DropDownMenuTryOn, 104)
-	UIDropDownMenu_SetSelectedID(DropDownMenuTryOn, 1)
+	UIDropDownMenu_SetSelectedValue(DropDownMenuTryOn, APPEARANCE_SOURCES_SELECTED)
 	UIDropDownMenu_JustifyText(DropDownMenuTryOn, "LEFT")
 end
 
@@ -824,7 +847,9 @@ function IGWardrobeItemTextButton_OnClick(self)
 			-- what is the 'standard' way of extracting the 'hyperlink' from the full link?
 			local linkString = string.match(self.appearanceLink, "transmogappearance[%-?%d:]+")
 			-- debug the whole jumpToVisualID stuff from https://github.com/tomrus88/BlizzardInterfaceCode/blob/49f059f549c48d5811b13771a52c8a4cfff3b227/Interface/AddOns/Blizzard_Collections/Blizzard_Wardrobe.lua
-			WardrobeCollectionFrame_OpenTransmogLink(linkString);
+			WardrobeCollectionFrame_OpenTransmogLink(linkString)
+			-- do it a second time so it actually works.  don't know why, blizzard bug?  --TODO fix?
+			WardrobeCollectionFrame_OpenTransmogLink(linkString)
 		end
 	end
 end
