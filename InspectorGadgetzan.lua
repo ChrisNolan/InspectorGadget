@@ -382,7 +382,7 @@ function IGInspect_Show()
 		InspectorGadgetzanWardrobeFrame:RegisterEvent("INSPECT_READY")
 		InspectUnit("target")
 	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.") -- TODO make this red for an error
 	end
 end
 
@@ -586,13 +586,145 @@ local inventorySlotNames = {
 	"SecondaryHand",
 }
 
-function IGWardrobeViewButton_OnClick(self)
-	local s = {}
-	PlaySound("igMainMenuOptionCheckBoxOn");
-	DressUpSources(InspectorGadgetzanAppearanceSources());
+
+--[[
+local KNOWN =                                       L["Learned."]												Blue & Enabled
+local KNOWN_FROM_ANOTHER_ITEM =                     L["Learned from another item."]								Blue & Enabled
+local KNOWN_BY_ANOTHER_CHARACTER =                  L["Learned for a different class."]							Blue & Disabled
+local KNOWN_BUT_TOO_LOW_LEVEL =                     L["Learned but cannot transmog yet."]						Blue & Disabled
+local KNOWN_FROM_ANOTHER_ITEM_BUT_TOO_LOW_LEVEL =   L["Learned from another item but cannot transmog yet."]		Blue & Disabled
+local KNOWN_FROM_ANOTHER_ITEM_AND_CHARACTER =       L["Learned for a different class and item."]				Blue & Disabled
+local UNKNOWN =                                     L["Not learned."]											Orange & Enable
+local UNKNOWABLE_BY_CHARACTER =                     L["Another class can learn this item."]						Yellow & Disabl
+local UNKNOWABLE_BY_CHARACTER_SOULBOUND =           L["Cannot be learned by this character."]					Yellow & Disabl
+local CAN_BE_LEARNED_BY =                           L["Can be learned by:"] -- list of classes					not used
+local NOT_TRANSMOGABLE =                            L["Cannot be learned."]										Gray
+local CANNOT_DETERMINE =                            L["Cannot determine status on other characters."]			Yellow & Disabl
+]]--
+
+
+local APPEARANCE_SOURCES_ALL = 1
+local APPEARANCE_SOURCES_SELECTED = 2
+local APPEARANCE_SOURCES_POSSIBLE = 3
+
+local KNOWN_YES =	1  -- Blue & Enabled
+local KNOWN_NO =	2  -- Blue & Disabled
+local NOTKNOWN_YES =3  -- Orange & Enabled
+local NOTKNOWN_NO = 4  -- Yellow & Disabled
+local CANTKNOW =	5
+
+function InspectorGadgetzan:ItemTransmogStatus(itemLink)
+	if CanIMogIt then
+		local status = CanIMogIt:GetTooltipText(itemLink)
+		if (
+			status == CanIMogIt.KNOWN or
+			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM
+		) then
+			return KNOWN_YES
+		elseif (
+			status == CanIMogIt.KNOWN_BY_ANOTHER_CHARACTER or
+			status == CanIMogIt.KNOWN_BUT_TOO_LOW_LEVEL or
+			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM_BUT_TOO_LOW_LEVEL or
+			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM_AND_CHARACTER
+		) then
+			return KNOWN_NO
+		elseif (
+			status == CanIMogIt.UNKNOWN
+		) then
+			return NOTKNOWN_YES
+		elseif (
+			status == CanIMogIt.UNKNOWABLE_BY_CHARACTER or
+			status == CanIMogIt.UNKNOWABLE_BY_CHARACTER_SOULBOUND or
+			status == CanIMogIt.CANNOT_DETERMINE
+		) then
+			return NOTKNOWN_NO
+		else
+			return CANTKNOW
+		end
+	else
+		return NOTKNOWN_NO
+	end
 end
 
-function InspectorGadgetzanAppearanceSources()
+local itemTransmogStatues = {
+	[KNOWN_YES] = {
+		["color"] = BLUE,
+		["enabled"] = true,
+	},
+	[KNOWN_NO] = {
+		["color"] = BLUE,
+		["enabled"] = false,
+	},
+	[NOTKNOWN_YES] = {
+		["color"] = RED_ORANGE,
+		["enabled"] = true,
+	},
+	[NOTKNOWN_NO] = {
+		["color"] = YELLOW,
+		["enabled"] = false,
+	},
+	[CANTKNOW] = {
+		["color"] = GRAY,
+		["enabled"] = false,
+	},
+}
+
+-- copied from DressupFrame.lua since my appearanceSources wasn't compatible...  should try to make my argument better
+local function MyDressUpSources(appearanceSources, mainHandEnchant, offHandEnchant)
+	if ( not appearanceSources ) then
+		return true;
+	end
+
+	DressUpFrame_Show();
+	--local mainHandSlotID = GetInventorySlotInfo("MAINHANDSLOT");
+	--local secondaryHandSlotID = GetInventorySlotInfo("SECONDARYHANDSLOT");
+	--[[
+	for i = 1, #appearanceSources do
+		print("Looping DressUp "..appearanceSources[i])
+		--if ( i ~= mainHandSlotID and i ~= secondaryHandSlotID ) then
+			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
+				print("Trying on "..appearanceSources[i])
+				DressUpModel:TryOn(appearanceSources[i])
+			end
+		--end
+	end
+	]]--
+	for slotID, sourceID in pairs(appearanceSources) do
+		--if ( i ~= mainHandSlotID and i ~= secondaryHandSlotID ) then
+			if ( sourceID and sourceID ~= NO_TRANSMOG_SOURCE_ID ) then
+				DressUpModel:TryOn(sourceID)
+			end
+		--end
+	end
+
+	--print("Trying on weapons now")
+	--DressUpModel:TryOn(appearanceSources[mainHandSlotID], "MAINHANDSLOT", mainHandEnchant);
+	--DressUpModel:TryOn(appearanceSources[secondaryHandSlotID], "SECONDARYHANDSLOT", offHandEnchant);
+end
+
+function IGWardrobeViewButton_OnClick(self)
+	PlaySound("igMainMenuOptionCheckBoxOn");
+	MyDressUpSources(InspectorGadgetzanAppearanceSources(UIDropDownMenu_GetSelectedValue(DropDownMenuTryOn)));
+end
+
+function InspectorGadgetzanAppearanceSourcesCheck(flag, button)
+	if flag == APPEARANCE_SOURCES_ALL then return true end
+	local itemTransmogStatus = InspectorGadgetzan:ItemTransmogStatus(button.itemLink)
+	if flag == APPEARANCE_SOURCES_SELECTED then
+		if itemTransmogStatus == KNOWN_YES or itemTransmogStatus == NOTKNOWN_YES then
+			return true
+		end
+	elseif flag == APPEARANCE_SOURCES_POSSIBLE then
+		if itemTransmogStatus == KNOWN_YES or itemTransmogStatus == KNOWN_NO then
+			return true
+		end
+	else
+		return false
+	end
+end
+
+function InspectorGadgetzanAppearanceSources(flag)
+	if not(flag) then flag = APPEARANCE_SOURCES_ALL end
 	-- array of appearanceSources is:
 	--   1 - subarray of
 	--       slotIDs (vs categoryIDs) and sourceIDs
@@ -601,9 +733,41 @@ function InspectorGadgetzanAppearanceSources()
 	local appearanceSources = {}
 	for k, v in pairs(inventorySlotNames) do
 		button = _G["InspectorGadgetzanWardrobe" .. v .. "Text"]
-		if button.slotID then appearanceSources[button.slotID] = button.sourceID end
+		if button.slotID and InspectorGadgetzanAppearanceSourcesCheck(flag, button) then
+			appearanceSources[button.slotID] = button.sourceID
+		end
 	end
-	return appearanceSources
+	return appearanceSources, 0, 0
+end
+
+
+function DropDownMenuTryOn_OnLoad(self)
+	local items = {
+		{ ["text"] = "All", ["value"] = APPEARANCE_SOURCES_ALL, ["tooltipText"] = "All Items, of course"},
+		{ ["text"] = "Wearable", ["value"] = APPEARANCE_SOURCES_SELECTED, ["tooltipText"] = "Wearable whatever that means"},
+		{ ["text"] = "In Collection", ["value"] = APPEARANCE_SOURCES_POSSIBLE, ["tooltipText"] = "In Collection, of course"},
+	}
+	local function initialize(self, level)
+	   local info = UIDropDownMenu_CreateInfo()
+	   for k, v in pairs(items) do
+		  info = UIDropDownMenu_CreateInfo()
+		  info.text = v.text
+		  info.value = v.value
+		  info.tooltipTitle = "Tooltip title" -- not doing anything ATM.  something about a UI setting?
+		  info.tooltipText = v.tooltipText
+		  info.func = DropDownMenuTryOn_OnClick
+		  UIDropDownMenu_AddButton(info, level)
+	   end
+	end
+	UIDropDownMenu_Initialize(DropDownMenuTryOn, initialize)
+	UIDropDownMenu_SetWidth(DropDownMenuTryOn, 80);
+	UIDropDownMenu_SetButtonWidth(DropDownMenuTryOn, 104)
+	UIDropDownMenu_SetSelectedID(DropDownMenuTryOn, 1)
+	UIDropDownMenu_JustifyText(DropDownMenuTryOn, "LEFT")
+end
+
+function DropDownMenuTryOn_OnClick(self)
+	UIDropDownMenu_SetSelectedValue(DropDownMenuTryOn, self.value)
 end
 
 -- Init the button on the screen
@@ -774,84 +938,6 @@ function IGWardrobeItemSlotButton_Update(button)
 		GameTooltip:Hide();
 	end
 end
-
-
---[[
-local KNOWN =                                       L["Learned."]												Blue & Enabled
-local KNOWN_FROM_ANOTHER_ITEM =                     L["Learned from another item."]								Blue & Enabled
-local KNOWN_BY_ANOTHER_CHARACTER =                  L["Learned for a different class."]							Blue & Disabled
-local KNOWN_BUT_TOO_LOW_LEVEL =                     L["Learned but cannot transmog yet."]						Blue & Disabled
-local KNOWN_FROM_ANOTHER_ITEM_BUT_TOO_LOW_LEVEL =   L["Learned from another item but cannot transmog yet."]		Blue & Disabled
-local KNOWN_FROM_ANOTHER_ITEM_AND_CHARACTER =       L["Learned for a different class and item."]				Blue & Disabled
-local UNKNOWN =                                     L["Not learned."]											Orange & Enable
-local UNKNOWABLE_BY_CHARACTER =                     L["Another class can learn this item."]						Yellow & Disabl
-local UNKNOWABLE_BY_CHARACTER_SOULBOUND =           L["Cannot be learned by this character."]					Yellow & Disabl
-local CAN_BE_LEARNED_BY =                           L["Can be learned by:"] -- list of classes					not used
-local NOT_TRANSMOGABLE =                            L["Cannot be learned."]										Gray
-local CANNOT_DETERMINE =                            L["Cannot determine status on other characters."]			Yellow & Disabl
-]]--
-
-local KNOWN_YES =	1  -- Blue & Enabled
-local KNOWN_NO =	2  -- Blue & Disabled
-local NOTKNOWN_YES =3  -- Orange & Enabled
-local NOTKNOWN_NO = 4  -- Yellow & Disabled
-local CANTKNOW =	5
-
-function InspectorGadgetzan:ItemTransmogStatus(itemLink)
-	if CanIMogIt then
-		local status = CanIMogIt:GetTooltipText(itemLink)
-		if (
-			status == CanIMogIt.KNOWN or
-			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM
-		) then
-			return KNOWN_YES
-		elseif (
-			status == CanIMogIt.KNOWN_BY_ANOTHER_CHARACTER or
-			status == CanIMogIt.KNOWN_BUT_TOO_LOW_LEVEL or
-			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM_BUT_TOO_LOW_LEVEL or
-			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM_AND_CHARACTER
-		) then
-			return KNOWN_NO
-		elseif (
-			status == CanIMogIt.UNKNOWN
-		) then
-			return NOTKNOWN_YES
-		elseif (
-			status == CanIMogIt.UNKNOWABLE_BY_CHARACTER or
-			status == CanIMogIt.UNKNOWABLE_BY_CHARACTER_SOULBOUND or
-			status == CanIMogIt.CANNOT_DETERMINE
-		) then
-			return NOTKNOWN_NO
-		else
-			return CANTKNOW
-		end
-	else
-		return NOTKNOWN_NO
-	end
-end
-
-local itemTransmogStatues = {
-	[KNOWN_YES] = {
-		["color"] = BLUE,
-		["enabled"] = true,
-	},
-	[KNOWN_NO] = {
-		["color"] = BLUE,
-		["enabled"] = false,
-	},
-	[NOTKNOWN_YES] = {
-		["color"] = RED_ORANGE,
-		["enabled"] = true,
-	},
-	[NOTKNOWN_NO] = {
-		["color"] = YELLOW,
-		["enabled"] = false,
-	},
-	[CANTKNOW] = {
-		["color"] = GRAY,
-		["enabled"] = false,
-	},
-}
 
 -- Change the ItemText to match the links attached to it
 function IGWardrobeItemTextButton_Update(button)
