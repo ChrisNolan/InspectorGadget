@@ -558,8 +558,10 @@ function IGWardrobeViewButton_OnEnter(self)
 		GameTooltip:AddLine("Please install/enable "..YELLOW.."CanIMogIt|r Addon to enable these features fully", 1.0,1.0,1.0)
 	else
 		GameTooltip:AddLine("* 'All' will try on all appearances", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("* 'Wearable' will only try on the "..BLUE.."blue|r and "..BLUE_GREEN.."green|r highlighted items.  These are the ones which work for your class.", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("* 'In Collection' will try on the "..BLUE.."blue|r appearances, regardless of class, which works well imagining what it'll look like on an alt.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'Wearable' will only try on the "..BLUE.."blue|r and "..BLUE_GREEN.."green|r highlighted items.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("These are the ones which work for your class.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'In Collection' will try on the "..BLUE.."blue|r appearances, regardless of class,", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("which works well imagining what it'll look like on an alt.", 1.0, 1.0, 1.0)
 		GameTooltip:AddLine(" ")
 		GameTooltip:AddLine("The "..RED_DULL.."red|r items are not known to you, and aren't learnable by this character.", 1.0, 1.0, 1.0)
 		GameTooltip:AddLine(" ")
@@ -693,6 +695,7 @@ local itemTransmogStatues = {
 }
 
 -- copied from DressupFrame.lua since my appearanceSources wasn't compatible...  should try to make my argument better
+-- TODO when I'm wearing something, they aren't, my dress up isn't current taking it off... eg I have a tabard on, they don't, I say 'all' and I see my tabard still.
 local function MyDressUpSources(appearanceSources, mainHandEnchant, offHandEnchant)
 	if ( not appearanceSources ) then
 		return true;
