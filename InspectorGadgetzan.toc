@@ -8,7 +8,9 @@
 
 ## DefaultState: enabled
 ## SavedVariables: InspectorGadgetzanDB
+## OptionalDeps: CanIMogIt
 ## X-Category: Transmogrify, Companions
+## X-Website: https://github.com/ChrisNolan/InspectorGadgetzan
 ## X-Localizations: enUS
 
 embeds.xml

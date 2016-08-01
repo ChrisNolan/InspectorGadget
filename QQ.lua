@@ -267,3 +267,24 @@ groupFallthrough = IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and "INSTANCE_CHAT" or 
 if groupFallthrough then self:SendCommMessage("NewAppearance", share_msg, groupFallthrough) end
 InspectorGadgetzan:SendCommMessage("TestMessage", "Anybody Home?", "PARTY")
 InspectorGadgetzan:SendCommMessage("NewAppearance", "Anybody Home?", "PARTY")
+
+function testTableAdd(count)
+   local t = {}
+   for i = 1, count do
+      print("Adding "..i)
+      t[i] = "Yes please ".. i
+      print(#t)
+   end
+   print("We counted "..#t.." times")
+   return t
+end
+print(testTableAdd(5))
+function testTableAddOutOfOrder()
+   local t = {}
+   t[3] = "three"
+   t[5] = "five"
+   t[15] = "wow"
+   print("We counted "..#t.." times")
+   return t
+end
+print(testTableAddOutOfOrder())

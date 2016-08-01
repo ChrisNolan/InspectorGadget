@@ -75,8 +75,31 @@
 	<!-- Text Buttons for showing appearance names -->
 	<Button name="InspectorGadgetzanWardrobeItemTextButtonTemplate" inherits="MagicButtonTemplate, TruncatedButtonTemplate" virtual="true">
 		<Size x="114" y="36"/>
+		<!--
+			Interface\CharacterFrame\Char-Stat-Middle - black					- good
+			Interface\PaperDollInfoFrame\UI-Character-Tab-Highlight-yellow  - round yellow
+			Interface\PaperDollInfoFrame\UI-Character-Tab-Highlight  - blue					- Nice, but not for disable
+			Interface\PaperDollInfoFrame\UI-Character-Tab-RealHighlight  - blue to white gradient
+			Interface\FriendsFrame\UI-FriendsFrame-HighlightBar   - big yellow
+			World\Expansion03\Doodads\Generic\Maelstrom\MaelstromWater_Highlight01
+			Interface\ACHIEVEMENTFRAME\UI-Achievement-Category-Highlight  - Green			Good when titled horiz, but not tall enough
+			Interface\BUTTONS\UI-DialogBox-Button-Highlight - Red							- Maybe, height issue
+			Interface\BUTTONS\UI-Listbox-Highlight - yellow									- Maybe
+			Interface\BUTTONS\UI-Listbox-Highlight2 - grey									- Closer...
+			Interface\BUTTONS\UI-Panel-Button-Highlight - red								- too small, maybe if I knew how to stretch it?
+			Interface\BUTTONS\UI-Panel-Button-Highlight2 - grey								- ditto
+			Interface\BUTTONS\UI-Panel-Button-YellowHighlight - yellow						- ditto
+			Interface\Calendar\EventHighlight - yellow frame								- ditto
+			Interface\CHATFRAME\ChatFrameTab-HighlightMid-min - grey with white top and bottom gradient		Not tall enough
+			Interface\CHATFRAME\ChatFrameTab-HighlightMid - grey with white top gradient
+			Interface\HELPFRAME\HelpFrameButton-Highlight - yellow top and bottom gradient out to sides		not tall enough
+			Interface\QUESTFRAME\UI-QuestLogTitleHighlight - grey							- ding I think this is it!
+			Interface\TradeFrame\UI-TradeFrame-Highlight - transparent green with thick green border 	too much alpha
+			Interface\WorldStateFrame\WORLDSTATEFINALSCORE-HIGHLIGHT - whiteish top and bottom grey in middle	nice, nice...
+		-->
+		<DisabledTexture file="Interface\CharacterFrame\Char-Stat-Middle" setAllPoints="true" vertTitle="true" HorizTile="true"/>
 		<HighlightTexture file="Interface\FriendsFrame\UI-FriendsFrame-HighlightBar-Blue" setAllPoints="true" alphaMode="ADD"/>
-		<NormalTexture file="Interface\CharacterFrame\Char-Stat-Middle" setAllPoints="true" vertTile="true" HorizTile="true"/>
+		<NormalTexture file="Interface\WorldStateFrame\WORLDSTATEFINALSCORE-HIGHLIGHT" setAllPoints="true" vertTile="false" HorizTile="false"/>
         <Scripts>
             <OnLoad>
 				--InspectorGadgetzanWardrobeItemSlotButton_OnLoad(self);
@@ -94,7 +117,7 @@
 				end
 			</OnUpdate>
             <OnEnter>
-				--IGWardrobeItemTextButton_OnEnter(self, motion);
+				IGWardrobeItemTextButton_OnEnter(self, motion);
 			</OnEnter>
             <OnLeave>
 				GameTooltip:Hide();
@@ -387,6 +410,31 @@
 							<Anchor point="TOPLEFT" relativeTo="InspectorGadgetzanWardrobeSecondaryHandSlot" x="42" y="0"/>
 						</Anchors>
 					</Button>
+					<Button parentKey="ViewButton" inherits="UIPanelButtonTemplate" text="Try On">
+						<Size x="0" y="22"/>
+						<Anchors>
+							<Anchor point="TOPRIGHT" relativeTo="InspectorGadgetzanWardrobeFeetSlot" x="0" y="-41"/>
+						</Anchors>
+						<Scripts>
+							<OnLoad function="IGWardrobeViewButton_OnLoad"/>
+							<OnClick function="IGWardrobeViewButton_OnClick"/>
+							<OnEnter function="IGWardrobeViewButton_OnEnter"/>
+							<OnLeave>
+								GameTooltip:Hide();
+								ResetCursor();
+							</OnLeave>
+						</Scripts>
+					</Button>
+					<Frame name="DropDownMenuTryOn" inherits="UIDropDownMenuTemplate" setAllPoints="true">
+						<Size x="80" y="22"/>
+						<Anchors>
+							<Anchor point="TOPRIGHT" relativeTo="InspectorGadgetzanWardrobeFeetSlot" x="-54" y="-39"/>
+						</Anchors>
+						<Scripts>
+							<OnLoad function="DropDownMenuTryOn_OnLoad"/>
+							<OnClick function="DropDownMenuTryOn_OnClick"/>
+						</Scripts>
+					</Frame>
 				</Frames>
 			</Frame>
 		</Frames>

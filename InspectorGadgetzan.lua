@@ -84,7 +84,17 @@ CHAT_COLOR["WHISPER"]		= {
 		["r"] = 1, ["g"] = 0.501960784, ["b"] = 1,
 	},
 }
-CHAT_COLOR["INSTANCE"] = CHAT_COLOR["PARTY"]
+CHAT_COLOR["INSTANCE_CHAT"] = CHAT_COLOR["PARTY"]
+
+local BLUE =   "|cff15abff"
+local BLUE_GREEN = "|cff009e73"
+--local PINK = "|cffcc79a7"
+local RED_DULL = "|cffCF1515"-- "|cff820000"
+--local ORANGE = "|cffe69f00"
+local RED_ORANGE = "|cffff9333"
+local YELLOW = "|cfff0e442"
+local GRAY =   "|cff888888"
+
 
 
 -- make sure the addon I'm parenting to in my xml is loaded, as it is load on demand
@@ -239,6 +249,35 @@ function InspectorGadgetzan:OnCommReceived(prefix, message, distribution, sender
 	end
 end
 
+--[[ -- I'm using just the text of the tooltip return atm because these were tricky to wrap my head around.  I like the idea of using them though so let's keep them around for the time being
+
+function InspectorGadgetzan:IsValidAppearanceForCharacter(itemLink)
+	if CanIMogIt and itemLink then
+		return CanIMogIt:IsValidAppearanceForCharacter(itemLink)
+	else
+		return false
+	end
+end
+
+function InspectorGadgetzan:PlayerKnowsTransmog(itemLink)
+	if CanIMogIt then
+		return CanIMogIt:PlayerKnowsTransmog(itemLink)
+	end
+end
+
+function InspectorGadgetzan:CharacterCanLearnTransmog(itemLink)
+	if CanIMogIt then
+		CanIMogIt:CharacterCanLearnTransmog(itemLink)
+	end
+end
+
+function InspectorGadgetzan:CanIMogItGetTooltipText(itemLink)
+	if CanIMogIt then
+		CanIMogIt:GetTooltipText(itemLink)
+	end
+end
+]]--
+
 local MountCache={};--  Stores our discovered mounts' spell IDs
 
 local function buildMountCache()
@@ -254,7 +293,7 @@ local function buildMountCache()
 			};
 		end
 		-- TODO manually add class specific mounts that aren't in everyone's journal?  Like "Felsteed"
-		--   Mounts that have trouble ATM: Ancient Frostsabre
+		--   Mounts that have trouble ATM: Ancient Frostsaber, Plagued Proto-drake, Reins of the Black Proto-Drake (these are flagged as 'Legacy' mounts in Wowhead).  This comment gives more of the 1.4 removed mounts: http://www.wowhead.com/item=12302/reins-of-the-ancient-frostsaber#comments:id=1765130.  wonder if I can search wowhead for all the 'legacy' ones rather than just stumbling upon them?  Swift Spectral Tiger
 	end
 end
 
@@ -344,7 +383,7 @@ function IGInspect_Show()
 		InspectorGadgetzanWardrobeFrame:RegisterEvent("INSPECT_READY")
 		InspectUnit("target")
 	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.")
+		addon:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.") -- TODO make this red for an error
 	end
 end
 
@@ -399,55 +438,362 @@ local function IGInspectSourcesDump()
 				if     categoryID == 1 then
 					InspectorGadgetzanWardrobeHeadSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeHeadText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeHeadText.itemLink = itemLink
+					InspectorGadgetzanWardrobeHeadText.categoryID = categoryID
+					InspectorGadgetzanWardrobeHeadText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeHeadText.slotID = INVSLOT_HEAD
 				elseif categoryID == 2 then 
 					InspectorGadgetzanWardrobeShoulderSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeShoulderText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeShoulderText.itemLink = itemLink
+					InspectorGadgetzanWardrobeShoulderText.categoryID = categoryID
+					InspectorGadgetzanWardrobeShoulderText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeShoulderText.slotID = INVSLOT_SHOULDER
 				elseif categoryID == 3 then
 					InspectorGadgetzanWardrobeBackSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeBackText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeBackText.itemLink = itemLink
+					InspectorGadgetzanWardrobeBackText.categoryID = categoryID
+					InspectorGadgetzanWardrobeBackText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeBackText.slotID = INVSLOT_BACK
 				elseif categoryID == 4 then
 					InspectorGadgetzanWardrobeChestSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeChestText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeChestText.itemLink = itemLink
+					InspectorGadgetzanWardrobeChestText.categoryID = categoryID
+					InspectorGadgetzanWardrobeChestText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeChestText.slotID = INVSLOT_CHEST
 				elseif categoryID == 5 then
 					InspectorGadgetzanWardrobeShirtSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeShirtText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeShirtText.itemLink = itemLink
+					InspectorGadgetzanWardrobeShirtText.categoryID = categoryID
+					InspectorGadgetzanWardrobeShirtText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeShirtText.slotID = INVSLOT_BODY
 				elseif categoryID == 6 then
 					InspectorGadgetzanWardrobeTabardSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeTabardText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeTabardText.itemLink = itemLink
+					InspectorGadgetzanWardrobeTabardText.categoryID = categoryID
+					InspectorGadgetzanWardrobeTabardText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeTabardText.slotID = INVSLOT_TABARD
 				elseif categoryID == 7 then
 					InspectorGadgetzanWardrobeWristSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeWristText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeWristText.itemLink = itemLink
+					InspectorGadgetzanWardrobeWristText.categoryID = categoryID
+					InspectorGadgetzanWardrobeWristText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeWristText.slotID = INVSLOT_WRIST
 				elseif categoryID == 8 then
 					InspectorGadgetzanWardrobeHandsSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeHandsText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeHandsText.itemLink = itemLink
+					InspectorGadgetzanWardrobeHandsText.categoryID = categoryID
+					InspectorGadgetzanWardrobeHandsText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeHandsText.slotID = INVSLOT_HAND
 				elseif categoryID == 9 then
 					InspectorGadgetzanWardrobeWaistSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeWaistText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeWaistText.itemLink = itemLink
+					InspectorGadgetzanWardrobeWaistText.categoryID = categoryID
+					InspectorGadgetzanWardrobeWaistText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeWaistText.slotID = INVSLOT_WAIST
 				elseif categoryID ==10 then
 					InspectorGadgetzanWardrobeLegsSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeLegsText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeLegsText.itemLink = itemLink
+					InspectorGadgetzanWardrobeLegsText.categoryID = categoryID
+					InspectorGadgetzanWardrobeLegsText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeLegsText.slotID = INVSLOT_LEGS
 				elseif categoryID ==11 then
 					InspectorGadgetzanWardrobeFeetSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeFeetText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeFeetText.itemLink = itemLink
+					InspectorGadgetzanWardrobeFeetText.categoryID = categoryID
+					InspectorGadgetzanWardrobeFeetText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeFeetText.slotID = INVSLOT_FEET
 				end
-				if (transmogCategories[categoryID].slot == "MainHand") then
+				if (transmogCategories[categoryID] and transmogCategories[categoryID].slot == "MainHand") then
 					-- if it already has something in the mainhand, assume it is a dualwielder
 					if InspectorGadgetzanWardrobeMainHandSlot.itemLink then
 						InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
 						InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
+						InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
+						InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
+						InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
+						InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
 					else
 						InspectorGadgetzanWardrobeMainHandSlot.itemLink = itemLink
 						InspectorGadgetzanWardrobeMainHandText.appearanceLink = appearanceLink
+						InspectorGadgetzanWardrobeMainHandText.itemLink = itemLink
+						InspectorGadgetzanWardrobeMainHandText.categoryID = categoryID
+						InspectorGadgetzanWardrobeMainHandText.sourceID = appearanceSources[i]
+						InspectorGadgetzanWardrobeMainHandText.slotID = INVSLOT_MAINHAND
 					end
-				elseif transmogCategories[categoryID].slot == "SecondaryHand" then
+				elseif transmogCategories[categoryID] and transmogCategories[categoryID].slot == "SecondaryHand" then
 					InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
+					InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
+					InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
+					InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
 				end
 			end
 		end
 	else
 		addon:Print(InspectorGadgetzan:ChatFrame(), "not ready")
 	end
+end
+
+function IGWardrobeViewButton_OnLoad(self)
+	self:SetWidth(30 + self:GetFontString():GetStringWidth());
+end
+
+-- Deals with Tooltips when you mouse over
+function IGWardrobeViewButton_OnEnter(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:AddLine("Try on in the Dressing Room")
+	if not(CanIMogIt) then
+		GameTooltip:AddLine("Seeing all "..RED_DULL.."RED|r?", 1.0,1.0,1.0)
+		GameTooltip:AddLine("Please install/enable "..YELLOW.."CanIMogIt|r Addon to enable these features fully", 1.0,1.0,1.0)
+	else
+		GameTooltip:AddLine("* 'All' will try on all appearances", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'Wearable' will only try on the "..BLUE.."blue|r and "..BLUE_GREEN.."green|r highlighted items.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("These are the ones which work for your class.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'In Collection' will try on the "..BLUE.."blue|r appearances, regardless of class,", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("which works well imagining what it'll look like on an alt.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("The "..RED_DULL.."red|r items are not known to you, and aren't learnable by this character.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("If I need such a long tooltip, I need to re-think the UI, eh?")
+	end
+	GameTooltip:Show()
+	CursorUpdate(self)
+end
+
+--[[
+INVSLOT_HEAD = 1
+INVSLOT_NECK = 2
+INVSLOT_SHOULDER = 3
+INVSLOT_BODY = 4 (shirt)
+INVSLOT_CHEST = 5
+INVSLOT_WAIST = 6
+INVSLOT_LEGS = 7
+INVSLOT_FEET = 8
+INVSLOT_WRIST = 9
+INVSLOT_HAND = 10
+INVSLOT_FINGER1 = 11
+INVSLOT_FINGER2 = 12
+INVSLOT_TRINKET1 = 13
+INVSLOT_TRINKET2 = 14
+INVSLOT_BACK = 15
+INVSLOT_MAINHAND = 16
+INVSLOT_OFFHAND = 17
+INVSLOT_RANGED = 18
+INVSLOT_TABARD = 19
+]]--
+
+local inventorySlotNames = {
+	"Head",
+	"Shoulder",
+	"Back",
+	"Chest",
+	"Shirt",
+	"Tabard",
+	"Wrist",
+	"Hands",
+	"Waist",
+	"Legs",
+	"Feet",
+	"MainHand",
+	"SecondaryHand",
+}
+
+
+--[[
+local KNOWN =                                       L["Learned."]												Blue & Enabled
+local KNOWN_FROM_ANOTHER_ITEM =                     L["Learned from another item."]								Blue & Enabled
+local KNOWN_BY_ANOTHER_CHARACTER =                  L["Learned for a different class."]							Blue & Disabled
+local KNOWN_BUT_TOO_LOW_LEVEL =                     L["Learned but cannot transmog yet."]						Blue & Disabled
+local KNOWN_FROM_ANOTHER_ITEM_BUT_TOO_LOW_LEVEL =   L["Learned from another item but cannot transmog yet."]		Blue & Disabled
+local KNOWN_FROM_ANOTHER_ITEM_AND_CHARACTER =       L["Learned for a different class and item."]				Blue & Disabled
+local UNKNOWN =                                     L["Not learned."]											Orange & Enable
+local UNKNOWABLE_BY_CHARACTER =                     L["Another class can learn this item."]						Yellow & Disabl
+local UNKNOWABLE_BY_CHARACTER_SOULBOUND =           L["Cannot be learned by this character."]					Yellow & Disabl
+local CAN_BE_LEARNED_BY =                           L["Can be learned by:"] -- list of classes					not used
+local NOT_TRANSMOGABLE =                            L["Cannot be learned."]										Gray
+local CANNOT_DETERMINE =                            L["Cannot determine status on other characters."]			Yellow & Disabl
+]]--
+
+
+local APPEARANCE_SOURCES_ALL = 1
+local APPEARANCE_SOURCES_SELECTED = 2
+local APPEARANCE_SOURCES_POSSIBLE = 3
+
+local KNOWN_YES =	1  -- Blue & Enabled
+local KNOWN_NO =	2  -- Blue & Disabled
+local NOTKNOWN_YES =3  -- Orange & Enabled
+local NOTKNOWN_NO = 4  -- Yellow & Disabled
+local CANTKNOW =	5
+
+function InspectorGadgetzan:ItemTransmogStatus(itemLink)
+	local itemID = GetItemInfoInstant(itemLink)
+	if itemID == 134110 or itemID == 134111 or itemID == 134112 then return KNOWN_YES end -- Hack for the 'Hidden Helm/Cloak/Shoulders'
+	if CanIMogIt then
+		local status = CanIMogIt:GetTooltipText(itemLink)
+		if (
+			status == CanIMogIt.KNOWN or
+			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM
+		) then
+			return KNOWN_YES
+		elseif (
+			status == CanIMogIt.KNOWN_BY_ANOTHER_CHARACTER or
+			status == CanIMogIt.KNOWN_BUT_TOO_LOW_LEVEL or
+			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM_BUT_TOO_LOW_LEVEL or
+			status == CanIMogIt.KNOWN_FROM_ANOTHER_ITEM_AND_CHARACTER
+		) then
+			return KNOWN_NO
+		elseif (
+			status == CanIMogIt.UNKNOWN
+		) then
+			return NOTKNOWN_YES
+		elseif (
+			status == CanIMogIt.UNKNOWABLE_BY_CHARACTER or
+			status == CanIMogIt.UNKNOWABLE_BY_CHARACTER_SOULBOUND or
+			status == CanIMogIt.CANNOT_DETERMINE
+		) then
+			return NOTKNOWN_NO
+		else
+			return CANTKNOW
+		end
+	else
+		return NOTKNOWN_NO
+	end
+end
+
+local itemTransmogStatues = {
+	[KNOWN_YES] = {
+		["color"] = BLUE,
+		["enabled"] = true,
+	},
+	[KNOWN_NO] = {
+		["color"] = BLUE,
+		["enabled"] = false,
+	},
+	[NOTKNOWN_YES] = {
+		["color"] = BLUE_GREEN,
+		["enabled"] = true,
+	},
+	[NOTKNOWN_NO] = {
+		["color"] = RED_DULL,
+		["enabled"] = false,
+	},
+	[CANTKNOW] = {
+		["color"] = GRAY,
+		["enabled"] = false,
+	},
+}
+
+-- copied from DressupFrame.lua since my appearanceSources wasn't compatible...  should try to make my argument better
+-- TODO when I'm wearing something, they aren't, my dress up isn't current taking it off... eg I have a tabard on, they don't, I say 'all' and I see my tabard still.
+local function MyDressUpSources(appearanceSources, mainHandEnchant, offHandEnchant)
+	if ( not appearanceSources ) then
+		return true;
+	end
+
+	DressUpFrame_Show();
+	--local mainHandSlotID = GetInventorySlotInfo("MAINHANDSLOT");
+	--local secondaryHandSlotID = GetInventorySlotInfo("SECONDARYHANDSLOT");
+	--[[
+	for i = 1, #appearanceSources do
+		print("Looping DressUp "..appearanceSources[i])
+		--if ( i ~= mainHandSlotID and i ~= secondaryHandSlotID ) then
+			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
+				print("Trying on "..appearanceSources[i])
+				DressUpModel:TryOn(appearanceSources[i])
+			end
+		--end
+	end
+	]]--
+	for slotID, sourceID in pairs(appearanceSources) do
+		--if ( i ~= mainHandSlotID and i ~= secondaryHandSlotID ) then
+			if ( sourceID and sourceID ~= NO_TRANSMOG_SOURCE_ID ) then
+				DressUpModel:TryOn(sourceID)
+			end
+		--end
+	end
+
+	--print("Trying on weapons now")
+	--DressUpModel:TryOn(appearanceSources[mainHandSlotID], "MAINHANDSLOT", mainHandEnchant);
+	--DressUpModel:TryOn(appearanceSources[secondaryHandSlotID], "SECONDARYHANDSLOT", offHandEnchant);
+end
+
+function IGWardrobeViewButton_OnClick(self)
+	PlaySound("igMainMenuOptionCheckBoxOn");
+	MyDressUpSources(InspectorGadgetzanAppearanceSources(UIDropDownMenu_GetSelectedValue(DropDownMenuTryOn)));
+end
+
+function InspectorGadgetzanAppearanceSourcesCheck(flag, button)
+	if flag == APPEARANCE_SOURCES_ALL then return true end
+	local itemTransmogStatus = InspectorGadgetzan:ItemTransmogStatus(button.itemLink)
+	if flag == APPEARANCE_SOURCES_SELECTED then
+		if itemTransmogStatus == KNOWN_YES or itemTransmogStatus == NOTKNOWN_YES then
+			return true
+		end
+	elseif flag == APPEARANCE_SOURCES_POSSIBLE then
+		if itemTransmogStatus == KNOWN_YES or itemTransmogStatus == KNOWN_NO then
+			return true
+		end
+	else
+		return false
+	end
+end
+
+function InspectorGadgetzanAppearanceSources(flag)
+	if not(flag) then flag = APPEARANCE_SOURCES_ALL end
+	-- array of appearanceSources is:
+	--   1 - subarray of
+	--       slotIDs (vs categoryIDs) and sourceIDs
+	--   2 - mainhand enchant
+	--   3 - offland enchant
+	local appearanceSources = {}
+	for k, v in pairs(inventorySlotNames) do
+		button = _G["InspectorGadgetzanWardrobe" .. v .. "Text"]
+		if button.slotID and InspectorGadgetzanAppearanceSourcesCheck(flag, button) then
+			appearanceSources[button.slotID] = button.sourceID
+		end
+	end
+	return appearanceSources, 0, 0
+end
+
+
+function DropDownMenuTryOn_OnLoad(self)
+	local items = {
+		{ ["text"] = "All", ["value"] = APPEARANCE_SOURCES_ALL, ["tooltipText"] = "All Items, of course"},
+		{ ["text"] = "Wearable", ["value"] = APPEARANCE_SOURCES_SELECTED, ["tooltipText"] = "Wearable whatever that means"},
+		{ ["text"] = "In Collection", ["value"] = APPEARANCE_SOURCES_POSSIBLE, ["tooltipText"] = "In Collection, of course"},
+	}
+	local function initialize(self, level)
+	   local info = UIDropDownMenu_CreateInfo()
+	   for k, v in pairs(items) do
+		  info = UIDropDownMenu_CreateInfo()
+		  info.text = v.text
+		  info.value = v.value
+		  info.tooltipTitle = "Tooltip title" -- not doing anything ATM.  something about a UI setting?
+		  info.tooltipText = v.tooltipText
+		  info.func = DropDownMenuTryOn_OnClick
+		  UIDropDownMenu_AddButton(info, level)
+	   end
+	end
+	UIDropDownMenu_Initialize(DropDownMenuTryOn, initialize)
+	UIDropDownMenu_SetWidth(DropDownMenuTryOn, 80);
+	UIDropDownMenu_SetButtonWidth(DropDownMenuTryOn, 104)
+	UIDropDownMenu_SetSelectedValue(DropDownMenuTryOn, APPEARANCE_SOURCES_SELECTED)
+	UIDropDownMenu_JustifyText(DropDownMenuTryOn, "LEFT")
+end
+
+function DropDownMenuTryOn_OnClick(self)
+	UIDropDownMenu_SetSelectedValue(DropDownMenuTryOn, self.value)
 end
 
 -- Init the button on the screen
@@ -477,6 +823,22 @@ function IGWardrobeItemSlotButton_OnEnter(self)
 	CursorUpdate(self);
 end
 
+-- Deals with Tooltips when you mouse over an ItemText
+function IGWardrobeItemTextButton_OnEnter(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+	local tooltipSet = false
+	if self.itemLink and CanIMogIt then
+		--tooltipSet = GameTooltip:SetHyperlink(self.itemLink)
+		tooltipSet = GameTooltip:SetText(CanIMogIt:GetTooltipText(self.itemLink))
+		-- I want to catch of hte tooltip doesn't get set, but the flag needs work
+	else
+		local n = strupper(strsub(self:GetName(), 27)) -- 27 is hardcode of string.len("InspectorGadgetzanWardrobe")+1) why do the math after all
+		local text = _G[n:gsub("TEXT", "SLOT")]
+		GameTooltip:SetText(text);
+	end
+	CursorUpdate(self);
+end
+
 -- Click handler to launch the wardrobe collection window
 function IGWardrobeItemTextButton_OnClick(self)
 	-- code from FrameXML/ItemRef.lua's "transmogappearance" handler
@@ -488,7 +850,9 @@ function IGWardrobeItemTextButton_OnClick(self)
 			-- what is the 'standard' way of extracting the 'hyperlink' from the full link?
 			local linkString = string.match(self.appearanceLink, "transmogappearance[%-?%d:]+")
 			-- debug the whole jumpToVisualID stuff from https://github.com/tomrus88/BlizzardInterfaceCode/blob/49f059f549c48d5811b13771a52c8a4cfff3b227/Interface/AddOns/Blizzard_Collections/Blizzard_Wardrobe.lua
-			WardrobeCollectionFrame_OpenTransmogLink(linkString);
+			WardrobeCollectionFrame_OpenTransmogLink(linkString)
+			-- do it a second time so it actually works.  don't know why, blizzard bug?  --TODO fix?
+			WardrobeCollectionFrame_OpenTransmogLink(linkString)
 		end
 	end
 end
@@ -605,10 +969,17 @@ end
 
 -- Change the ItemText to match the links attached to it
 function IGWardrobeItemTextButton_Update(button)
-	local textureName;
 	if button.appearanceLink then
-		button:SetText(button.appearanceLink)
+		local itemTransmogStatus = InspectorGadgetzan:ItemTransmogStatus(button.itemLink)
+		local color = itemTransmogStatues[itemTransmogStatus].color
+		local enabled = itemTransmogStatues[itemTransmogStatus].enabled
+		button:SetText(color .. button.appearanceLink:match("%[.*%]"):gsub("%[", ""):gsub("%]",""))
 		button:Show()
+		if enabled then
+			button:Enable()
+		else
+			button:Disable()
+		end
 	else
 		button:Hide()
 	end
