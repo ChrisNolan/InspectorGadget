@@ -1,5 +1,15 @@
 # Changelog
 
+## v7.0.3.5
+
+### CanIMogIt Integration
+
+The great addon CanIMogIt has been integrated as an optional dependancy into Inspector Gadgetzan.  The wardrobe appearances tab will now give addtional functionality with it's 'try on' feature using CanIMogIt information.
+
+You can choose to try on all the items that are wearable by you in the other person's appearance, or choose to see what you'd look like wearing all the appearances they are using that you have unlocked, regardless if you can wear them on your current character or not.
+
+Items that you know, or can learn, can be more obviously clicked on to launch the Wardrobe Collection as well.
+
 ## v7.0.3.4
 
 ### 'MogLog' Know when you unlock *any* transmogrification appearance, not just the epic ones, and tell your friends.

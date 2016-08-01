@@ -4,7 +4,7 @@
 ## X-License: MIT
 
 ## Interface: 70000
-## Version: 7.0.3.4
+## Version: 7.0.3.5
 
 ## DefaultState: enabled
 ## SavedVariables: InspectorGadgetzanDB
