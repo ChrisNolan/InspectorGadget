@@ -292,7 +292,7 @@ local function buildMountCache()
 			};
 		end
 		-- TODO manually add class specific mounts that aren't in everyone's journal?  Like "Felsteed"
-		--   Mounts that have trouble ATM: Ancient Frostsabre
+		--   Mounts that have trouble ATM: Ancient Frostsaber, Plagued Proto-drake, Reins of the Black Proto-Drake (these are flagged as 'Legacy' mounts in Wowhead).  This comment gives more of the 1.4 removed mounts: http://www.wowhead.com/item=12302/reins-of-the-ancient-frostsaber#comments:id=1765130.  wonder if I can search wowhead for all the 'legacy' ones rather than just stumbling upon them?  Swift Spectral Tiger
 	end
 end
 
@@ -438,46 +438,79 @@ local function IGInspectSourcesDump()
 					InspectorGadgetzanWardrobeHeadSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeHeadText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeHeadText.itemLink = itemLink
+					InspectorGadgetzanWardrobeHeadText.categoryID = categoryID
+					InspectorGadgetzanWardrobeHeadText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeHeadText.slotID = INVSLOT_HEAD
 				elseif categoryID == 2 then 
 					InspectorGadgetzanWardrobeShoulderSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeShoulderText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeShoulderText.itemLink = itemLink
+					InspectorGadgetzanWardrobeShoulderText.categoryID = categoryID
+					InspectorGadgetzanWardrobeShoulderText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeShoulderText.slotID = INVSLOT_SHOULDER
 				elseif categoryID == 3 then
 					InspectorGadgetzanWardrobeBackSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeBackText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeBackText.itemLink = itemLink
+					InspectorGadgetzanWardrobeBackText.categoryID = categoryID
+					InspectorGadgetzanWardrobeBackText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeBackText.slotID = INVSLOT_BACK
 				elseif categoryID == 4 then
 					InspectorGadgetzanWardrobeChestSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeChestText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeChestText.itemLink = itemLink
+					InspectorGadgetzanWardrobeChestText.categoryID = categoryID
+					InspectorGadgetzanWardrobeChestText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeChestText.slotID = INVSLOT_CHEST
 				elseif categoryID == 5 then
 					InspectorGadgetzanWardrobeShirtSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeShirtText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeShirtText.itemLink = itemLink
+					InspectorGadgetzanWardrobeShirtText.categoryID = categoryID
+					InspectorGadgetzanWardrobeShirtText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeShirtText.slotID = INVSLOT_BODY
 				elseif categoryID == 6 then
 					InspectorGadgetzanWardrobeTabardSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeTabardText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeTabardText.itemLink = itemLink
+					InspectorGadgetzanWardrobeTabardText.categoryID = categoryID
+					InspectorGadgetzanWardrobeTabardText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeTabardText.slotID = INVSLOT_TABARD
 				elseif categoryID == 7 then
 					InspectorGadgetzanWardrobeWristSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeWristText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeWristText.itemLink = itemLink
+					InspectorGadgetzanWardrobeWristText.categoryID = categoryID
+					InspectorGadgetzanWardrobeWristText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeWristText.slotID = INVSLOT_WRIST
 				elseif categoryID == 8 then
 					InspectorGadgetzanWardrobeHandsSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeHandsText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeHandsText.itemLink = itemLink
+					InspectorGadgetzanWardrobeHandsText.categoryID = categoryID
+					InspectorGadgetzanWardrobeHandsText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeHandsText.slotID = INVSLOT_HAND
 				elseif categoryID == 9 then
 					InspectorGadgetzanWardrobeWaistSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeWaistText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeWaistText.itemLink = itemLink
+					InspectorGadgetzanWardrobeWaistText.categoryID = categoryID
+					InspectorGadgetzanWardrobeWaistText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeWaistText.slotID = INVSLOT_WAIST
 				elseif categoryID ==10 then
 					InspectorGadgetzanWardrobeLegsSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeLegsText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeLegsText.itemLink = itemLink
+					InspectorGadgetzanWardrobeLegsText.categoryID = categoryID
+					InspectorGadgetzanWardrobeLegsText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeLegsText.slotID = INVSLOT_LEGS
 				elseif categoryID ==11 then
 					InspectorGadgetzanWardrobeFeetSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeFeetText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeFeetText.itemLink = itemLink
+					InspectorGadgetzanWardrobeFeetText.categoryID = categoryID
+					InspectorGadgetzanWardrobeFeetText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeFeetText.slotID = INVSLOT_FEET
 				end
 				if (transmogCategories[categoryID].slot == "MainHand") then
 					-- if it already has something in the mainhand, assume it is a dualwielder
@@ -485,21 +518,92 @@ local function IGInspectSourcesDump()
 						InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
 						InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
 						InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
+						InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
+						InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
+						InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
 					else
 						InspectorGadgetzanWardrobeMainHandSlot.itemLink = itemLink
 						InspectorGadgetzanWardrobeMainHandText.appearanceLink = appearanceLink
 						InspectorGadgetzanWardrobeMainHandText.itemLink = itemLink
+						InspectorGadgetzanWardrobeMainHandText.categoryID = categoryID
+						InspectorGadgetzanWardrobeMainHandText.sourceID = appearanceSources[i]
+						InspectorGadgetzanWardrobeMainHandText.slotID = INVSLOT_MAINHAND
 					end
 				elseif transmogCategories[categoryID].slot == "SecondaryHand" then
 					InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
 					InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
 					InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
+					InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
+					InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
+					InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
 				end
 			end
 		end
 	else
 		addon:Print(InspectorGadgetzan:ChatFrame(), "not ready")
 	end
+end
+
+function IGWardrobeViewButton_OnLoad(self)
+	self:SetWidth(30 + self:GetFontString():GetStringWidth());
+end
+
+--[[
+INVSLOT_HEAD = 1
+INVSLOT_NECK = 2
+INVSLOT_SHOULDER = 3
+INVSLOT_BODY = 4 (shirt)
+INVSLOT_CHEST = 5
+INVSLOT_WAIST = 6
+INVSLOT_LEGS = 7
+INVSLOT_FEET = 8
+INVSLOT_WRIST = 9
+INVSLOT_HAND = 10
+INVSLOT_FINGER1 = 11
+INVSLOT_FINGER2 = 12
+INVSLOT_TRINKET1 = 13
+INVSLOT_TRINKET2 = 14
+INVSLOT_BACK = 15
+INVSLOT_MAINHAND = 16
+INVSLOT_OFFHAND = 17
+INVSLOT_RANGED = 18
+INVSLOT_TABARD = 19
+]]--
+
+local inventorySlotNames = {
+	"Head",
+	"Shoulder",
+	"Back",
+	"Chest",
+	"Shirt",
+	"Tabard",
+	"Wrist",
+	"Hands",
+	"Waist",
+	"Legs",
+	"Feet",
+	"MainHand",
+	"SecondaryHand",
+}
+
+function IGWardrobeViewButton_OnClick(self)
+	local s = {}
+	PlaySound("igMainMenuOptionCheckBoxOn");
+	DressUpSources(InspectorGadgetzanAppearanceSources());
+end
+
+function InspectorGadgetzanAppearanceSources()
+	-- array of appearanceSources is:
+	--   1 - subarray of
+	--       slotIDs (vs categoryIDs) and sourceIDs
+	--   2 - mainhand enchant
+	--   3 - offland enchant
+	local appearanceSources = {}
+	for k, v in pairs(inventorySlotNames) do
+		button = _G["InspectorGadgetzanWardrobe" .. v .. "Text"]
+		if button.slotID then appearanceSources[button.slotID] = button.sourceID end
+	end
+	return appearanceSources
 end
 
 -- Init the button on the screen
