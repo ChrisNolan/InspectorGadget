@@ -4,7 +4,7 @@
 
 ### CanIMogIt Integration
 
-The great addon CanIMogIt has been integrated as an optional dependancy into Inspector Gadgetzan.  The wardrobe appearances tab will now give addtional functionality with it's 'try on' feature using CanIMogIt information.
+The great addon CanIMogIt has been integrated as an optional dependency into Inspector Gadgetzan.  The wardrobe appearances tab will now give additional functionality with it's 'try on' feature using CanIMogIt information.
 
 You can choose to try on all the items that are wearable by you in the other person's appearance, or choose to see what you'd look like wearing all the appearances they are using that you have unlocked, regardless if you can wear them on your current character or not.
 
