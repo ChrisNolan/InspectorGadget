@@ -288,3 +288,19 @@ function testTableAddOutOfOrder()
    return t
 end
 print(testTableAddOutOfOrder())
+
+IGNewAppearanceLearnedAlertSystem:AddAlert("Appearance Link", nil, 9610)
+
+-- good sounds..
+
+PlaySound("UI_OrderHall_Talent_Ready_Toast")
+PlaySound("UI_Garrison_Toast_FollowerGained")
+PlaySound("UI_Garrison_Toast_MissionComplete");
+PlaySound("UI_igStore_PurchaseDelivered_Toast_01");
+PlaySound("UI_DigsiteCompletion_Toast");
+PlaySoundKitID(31578);	--UI_EpicLoot_Toast
+PlaySoundKitID(51402);	--UI_Raid_Loot_Toast_Lesser_Item_Won
+PlaySoundKitID(51561);	-- UI_Warforged_Item_Loot_Toast
+PlaySound("LFG_Rewards")
+PlaySound("UI_LegendaryLoot_Toast");
+PlaySound("UI_Professions_NewRecipeLearned_Toast");

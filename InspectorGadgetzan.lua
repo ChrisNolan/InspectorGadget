@@ -298,7 +298,7 @@ function IGNewAppearanceLearnedAlertFrame_SetUp(self, sourceID, bonus_msg)
 	
 		local title
 		if bonus_msg and bonus_msg ~= "" then
-			title = bonus_msg
+			title = bonus_msg:gsub("%s%-%s$", "")
 		else
 			title = "Appearance Collection Updated"
 		end
@@ -1161,7 +1161,7 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 	elseif latestAppearanceID == nil then
 		self.latestAppearanceLink = latestAppearanceID
 		if self.firstTRANSMOG_COLLECTION_UPDATED then
-			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "An appearance has been removed from your appearance collection")
+			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "If you just sold or traded an item, an appearance may have been removed from your appearance collection.")
 		else
 			-- kludge to not give the message the first time through.  the event first when first loading
 			self.firstTRANSMOG_COLLECTION_UPDATED = true
