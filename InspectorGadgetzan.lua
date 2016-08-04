@@ -278,6 +278,54 @@ function InspectorGadgetzan:CanIMogItGetTooltipText(itemLink)
 end
 ]]--
 
+--[[ IGNewAppearanceLearnedAlertFrame / taken from AlertFrameSystems / NewRecipeLearned as a model 
+
+	elseif ( event == "NEW_RECIPE_LEARNED" ) then
+		NewRecipeLearnedAlertSystem:AddAlert(...);
+
+
+]]--
+
+function IGNewAppearanceLearnedAlertFrame_SetUp(self, sourceID, bonus_msg)
+	if sourceID then
+		--PlaySound("UI_Professions_NewRecipeLearned_Toast")
+		-- TODO should we play a different sound if it is a unique appearance, or the final item?
+		PlaySound("UI_Garrison_Toast_FollowerGained")
+
+		local _, _, _, itemTexture, _, itemLink, appearanceLink = C_TransmogCollection.GetAppearanceSourceInfo(sourceID)
+		self.Icon:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask");
+		self.Icon:SetTexture(itemTexture);
+	
+		local title
+		if bonus_msg and bonus_msg ~= "" then
+			title = bonus_msg
+		else
+			title = "Appearance Collection Updated"
+		end
+		self.Title:SetText(title) -- rank and rank > 1 and UPGRADED_RECIPE_LEARNED_TITLE or NEW_RECIPE_LEARNED_TITLE);
+
+		--local rankTexture = IGNewAppearanceLearnedAlertFrame_GetStarTextureFromRank(rank);
+		--if rankTexture then
+		--	self.Name:SetFormattedText("%s %s", recipeName, rankTexture);
+		--else
+			self.Name:SetText(appearanceLink:match("%[.*%]"):gsub("%[", ""):gsub("%]",""));
+		--end
+		self.sourceID = sourceID
+		self.appearanceLink = appearanceLink
+		self.itemLink = itemLink
+		return true;
+	end
+	return false;
+end
+
+function IGNewAppearanceLearnedAlertFrame_OnClick(self, button, down)
+	if AlertFrame_OnClick(self, button, down) then
+		return;
+	end
+
+	IGWardrobeItemTextButton_OnClick(self)
+end
+
 local MountCache={};--  Stores our discovered mounts' spell IDs
 
 local function buildMountCache()
@@ -1042,6 +1090,7 @@ function InspectorGadgetzan:INSPECT_READY(...)
 end
 
 function InspectorGadgetzan:PLAYER_LOGIN(...)
+	IGNewAppearanceLearnedAlertSystem = AlertFrame:AddQueuedAlertFrameSubSystem("IGNewAppearanceLearnedAlertFrameTemplate", IGNewAppearanceLearnedAlertFrame_SetUp, 2, 6);
 	buildMountCache()
 end
 
@@ -1095,6 +1144,7 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		elseif #unCollectedNames == 0 then
 			bonus_msg = "All sources of this appearance collected. "
 		end
+		IGNewAppearanceLearnedAlertSystem:AddAlert(sourceID, bonus_msg)
 		self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
 		share_msg = format(SHARE_LEARN_TRANSMOG_S, bonus_share_msg, appearanceLink)
 		if (IsInGuild()) then
