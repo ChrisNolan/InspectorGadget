@@ -1,5 +1,10 @@
 # Changelog
 
+## v7.0.3.6
+
+Use an 'Alert Frame' to notify about new transmog appearances instead of just chat frame
+Make the removal message less definitive to handle false positives better
+
 ## v7.0.3.5
 
 ### CanIMogIt Integration
