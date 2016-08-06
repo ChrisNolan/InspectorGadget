@@ -20,6 +20,9 @@ New in v7.0.3.4 is the **"MogLog"**.  Have you unlocked an epic item and seen th
 
 To get the most out of the MogLog atm, create a new Chat Window (right click on "General" -> New Chat Window) and name it "Inspector Gadgetzan".  That way, all your collections will be in one spot, and not mixed up with all the other stuff happening.  I also choose settings of the new tab and turn off the other chat fields.  This configuration may change in a future release.
 
+New in v7.0.3.6 is the 'Toast' for the MogLog.  New Appearances will pop-up like other important events in game.  
+![New Appearances Toast animated gif](images/new-appearance-toast.gif)
+
 Be sure you have your guildies to get the addon as well so they'll see your unlocks and you can see theirs.
 
 ## Slash commands & LDB commands

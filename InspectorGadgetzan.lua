@@ -763,6 +763,7 @@ local function MyDressUpSources(appearanceSources, mainHandEnchant, offHandEncha
 		--end
 	end
 	]]--
+	DressUpModel:Undress()
 	for slotID, sourceID in pairs(appearanceSources) do
 		--if ( i ~= mainHandSlotID and i ~= secondaryHandSlotID ) then
 			if ( sourceID and sourceID ~= NO_TRANSMOG_SOURCE_ID ) then
@@ -807,7 +808,7 @@ function InspectorGadgetzanAppearanceSources(flag)
 	local appearanceSources = {}
 	for k, v in pairs(inventorySlotNames) do
 		button = _G["InspectorGadgetzanWardrobe" .. v .. "Text"]
-		if button.slotID and InspectorGadgetzanAppearanceSourcesCheck(flag, button) then
+		if button.appearanceLink and button.slotID and InspectorGadgetzanAppearanceSourcesCheck(flag, button) then
 			appearanceSources[button.slotID] = button.sourceID
 		end
 	end
@@ -987,6 +988,15 @@ local function IGWardrobeFrame_ClearButtons()
 	InspectorGadgetzanWardrobeFeetText.appearanceLink= nil
 	InspectorGadgetzanWardrobeMainHandText.appearanceLink= nil
 	InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink= nil
+	
+	--[[TODO I need to clear all the other attributes I set on the text button now too, don't I?
+	e.g. refactor time!
+	InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
+	InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
+	InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
+	InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
+	InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
+	]]--
 end
 
 -- Change the ItemSlot to match the links attached to it

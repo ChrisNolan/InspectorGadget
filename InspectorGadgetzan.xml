@@ -90,4 +90,23 @@
 			<OnClick function="IGNewAppearanceLearnedAlertFrame_OnClick"/>
 		</Scripts>
 	</Button>
+	<!-- plug an "Undress" button into the DressUp Frame, so whereever you are looking at close, you can quickly get naked -->
+	<Button parentKey="UndressButton" name="DressUpFrameUndressButton" inherits="UIPanelButtonTemplate" text="Undress" parent="DressUpFrame">
+		<Size>
+			<AbsDimension x="80" y="22"/>
+		</Size>
+		<Anchors>
+			<Anchor point="RIGHT" relativeTo="DressUpFrameResetButton" relativePoint="LEFT">
+				<Offset>
+					<AbsDimension x="0" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnClick>
+				DressUpModel:Undress();
+				PlaySound("gsTitleOptionOK");
+			</OnClick>
+		</Scripts>
+	</Button>
 </Ui>
