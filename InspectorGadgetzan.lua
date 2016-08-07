@@ -378,8 +378,6 @@ end
 local function buildMountCache()
 	local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID
 	for k, v in pairs(C_MountJournal.GetMountIDs()) do --  Loop though all mounts
-		-- TODO potential for the C_MountJournal.GetNumDisplayedMounts() to be really small, a cache issue maybe?
-		--      since I am asking for the DisplayedMountInfo() ideally for mounts that aren't in my display, this ends up giving me a nearly empty cache.  Happened once.  Loaded up the mount journal manually and reloaded and all was good.  Potential for future weird bugs here...
 		creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID = C_MountJournal.GetMountInfoByID(v);--   Grab mount spell ID
 		if spellID then
 			MountCache[spellID] = { -- Register spell ID in our cache
@@ -392,6 +390,8 @@ local function buildMountCache()
 			};
 		end
 	end
+	-- TODO potential for the C_MountJournal.GetNumDisplayedMounts() to be really small, a cache issue maybe?
+	--      since I am asking for the DisplayedMountInfo() ideally for mounts that aren't in my display, this ends up giving me a nearly empty cache.  Happened once.  Loaded up the mount journal manually and reloaded and all was good.  Potential for future weird bugs here...
 	for i = 1, C_MountJournal.GetNumMounts() do --  Loop though all mounts we can see in the journal to store the index
 		spellID = select(2, C_MountJournal.GetDisplayedMountInfo(i)) --   Grab mount spell ID
 		if spellID then
@@ -559,7 +559,7 @@ local function IGInspectSourcesDump()
 		for i = 1, #appearanceSources do
 			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
 				-- TODO should I local these?
-				categoryID , appearanceID, unknownBoolean1, uiOrder, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
+				categoryID , appearanceID, unknownBoolean1, itemTexture, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
 				if debugLevel then
 					addon:Printf(InspectorGadgetzan:ChatFrame(), "%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink)
 					-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
@@ -826,7 +826,6 @@ local itemTransmogStatues = {
 }
 
 -- copied from DressupFrame.lua since my appearanceSources wasn't compatible...  should try to make my argument better
--- TODO when I'm wearing something, they aren't, my dress up isn't current taking it off... eg I have a tabard on, they don't, I say 'all' and I see my tabard still.
 local function MyDressUpSources(appearanceSources, mainHandEnchant, offHandEnchant)
 	if ( not appearanceSources ) then
 		return true;
@@ -1269,7 +1268,6 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		if #sources == 1 then
 			bonus_msg = "Unique Appearance Unlocked - "
 			bonus_share_msg = "the unique "
-			-- TODO play a sound
 		elseif #unCollectedNames == 0 then
 			bonus_msg = "All sources of this appearance collected. "
 		end
