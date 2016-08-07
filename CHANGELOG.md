@@ -1,5 +1,32 @@
 # Changelog
 
+## v7.0.3.7
+
+### Undress First
+
+When you use the 'try on' button, it will now first Undress your model.
+That way if for example you had a tabard on, but the person you're
+basing your outfit on doesn't, it won't continue to show your tabard.
+
+Also, all the dressing rooms now have an 'Undress' button.  This is there
+if you have ever tried to look at a chest piece but couldn't because you
+had a tabard on.  Or couldn't see your new boots because of your robe.
+Or maybe bracers will matter the look of now if your gloves weren't
+covering them up ;-)
+
+### Mount Improvements
+
+Pop-up Alert when you learn a new mount.  Ding!  
+![New Mount Aleat animated gif](images/new-mount-toast.gif)
+
+Instead of "not mounted" message coming up when looking at legacy mounts
+(like the Ancient Frostsaber or Black Proto-Drake) or class mounts (like
+the Charger or Felsteed) a popup dialog with some details will be given
+instead.
+
+Please report any mounts which are not caught by this update but I think
+this will handle them.
+
 ## v7.0.3.6
 
 Use an 'Alert Frame' to notify about new transmog appearances instead of just chat frame

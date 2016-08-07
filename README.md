@@ -36,7 +36,7 @@ Inspector Gadgetzan gives you a few slash commands to use as well to help with y
 
 ## Optional Dependencies
 
-The addon *CanIMogIt* is a great tool, and if you have it installed, your wardrobe appearances tab will be greatly benefit from it.  The colors and 'try on' buttons will work much better.
+The addon [CanIMogIt](https://mods.curse.com/addons/wow/can-i-mog-it) is a great tool, and if you have it installed, your wardrobe appearances tab will be greatly benefit from it.  The colors and 'try on' buttons will work much better.
 
 ## Development
 ### Where to find the AddOn

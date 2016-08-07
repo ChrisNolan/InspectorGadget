@@ -314,4 +314,16 @@ PlaySound("UI_Professions_NewRecipeLearned_Toast");
 
 -- Piandao still has 3 turtle mounts in her bags.  She'll hold on to them for now to test this later.
 
-IGNewMountLearnedAlertSystem:AddAlert(64658)
+IGNewMountLearnedAlertSystem:AddAlert(64658)  -- Black Wolf
+IGNewMountLearnedAlertSystem:AddAlert(133023) -- Pandaren Kite
+IGNewMountLearnedAlertSystem:AddAlert(189998) -- Felstalker
+
+--  710/710 |  640  125
+--/run IGNewMountLearnedAlertSystem:AddAlert(189998); IGNewMountLearnedAlertSystem:AddAlert(133023)
+---
+function mountest()
+	print(C_MountJournal.GetNumMounts())
+	print(C_MountJournal.GetNumDisplayedMounts())
+	mountids = C_MountJournal.GetMountIDs
+	print(#mountids)
+end
