@@ -31,6 +31,9 @@ local UnitBuff = UnitBuff
 local UnitIsUnit = UnitIsUnit
 local UnitPlayerControlled = UnitPlayerControlled
 
+-------
+local MountCache={};--  Stores our discovered mounts' spell IDs
+
 -- Lua APIs
 local tconcat, tostring, select = table.concat, tostring, select
 local type, pairs, error = type, pairs, error
@@ -288,32 +291,34 @@ end
 
 function IGNewAppearanceLearnedAlertFrame_SetUp(self, sourceID, bonus_msg)
 	if sourceID then
-		--PlaySound("UI_Professions_NewRecipeLearned_Toast")
-		-- TODO should we play a different sound if it is a unique appearance, or the final item?
-		PlaySound("UI_Garrison_Toast_FollowerGained")
-
 		local _, _, _, itemTexture, _, itemLink, appearanceLink = C_TransmogCollection.GetAppearanceSourceInfo(sourceID)
-		self.Icon:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask");
-		self.Icon:SetTexture(itemTexture);
-	
-		local title
-		if bonus_msg and bonus_msg ~= "" then
-			title = bonus_msg:gsub("%s%-%s$", "")
-		else
-			title = "Appearance Collection Updated"
-		end
-		self.Title:SetText(title) -- rank and rank > 1 and UPGRADED_RECIPE_LEARNED_TITLE or NEW_RECIPE_LEARNED_TITLE);
+		if itemLink then
+			--PlaySound("UI_Professions_NewRecipeLearned_Toast")
+			-- TODO should we play a different sound if it is a unique appearance, or the final item?
+			PlaySound("UI_Garrison_Toast_FollowerGained")
 
-		--local rankTexture = IGNewAppearanceLearnedAlertFrame_GetStarTextureFromRank(rank);
-		--if rankTexture then
-		--	self.Name:SetFormattedText("%s %s", recipeName, rankTexture);
-		--else
-			self.Name:SetText(appearanceLink:match("%[.*%]"):gsub("%[", ""):gsub("%]",""));
-		--end
-		self.sourceID = sourceID
-		self.appearanceLink = appearanceLink
-		self.itemLink = itemLink
-		return true;
+			self.Icon:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask");
+			self.Icon:SetTexture(itemTexture);
+		
+			local title
+			if bonus_msg and bonus_msg ~= "" then
+				title = bonus_msg:gsub("%s%-%s$", "")
+			else
+				title = "Appearance Collection Updated"
+			end
+			self.Title:SetText(title) -- rank and rank > 1 and UPGRADED_RECIPE_LEARNED_TITLE or NEW_RECIPE_LEARNED_TITLE);
+
+			--local rankTexture = IGNewAppearanceLearnedAlertFrame_GetStarTextureFromRank(rank);
+			--if rankTexture then
+			--	self.Name:SetFormattedText("%s %s", recipeName, rankTexture);
+			--else
+				self.Name:SetText(appearanceLink:match("%[.*%]"):gsub("%[", ""):gsub("%]",""));
+			--end
+			self.sourceID = sourceID
+			self.appearanceLink = appearanceLink
+			self.itemLink = itemLink
+			return true;
+		end
 	end
 	return false;
 end
@@ -326,23 +331,56 @@ function IGNewAppearanceLearnedAlertFrame_OnClick(self, button, down)
 	IGWardrobeItemTextButton_OnClick(self)
 end
 
-local MountCache={};--  Stores our discovered mounts' spell IDs
+function IGNewMountLearnedAlertFrame_SetUp(self, spellID)
+	if spellID then
+		if MountCache[spellID] and MountCache[spellID].spellID == spellID then
+			local mount = MountCache[spellID]
+			-- TODO find a mount type sound in the kit
+			--   http://www.wowhead.com/sounds/name:Mount_Summon
+			--   http://www.wowhead.com/sounds/name:MountSummon
+			--   would be nice if I knew the specific mount sound used by that mount and I could play it?
+			--     I don't see any connection yet, so for now I've just picked a neat sounding one.
+			PlaySound("MON_HearthSteed_MountSummon")
+
+			self.Icon:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask")
+			self.Icon:SetTexture(mount.icon)
+
+			-- ERR_LEARN_MOUNT_S = "You have added the mount %s to your collection."
+			self.Title:SetText("New Mount Added to Collection")
+
+			self.Name:SetText(mount.creatureName)
+			
+			self.mount = mount
+			return true;
+		end
+	end
+	return false;
+end
 
 local function buildMountCache()
 	local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID
 	for i = 1, C_MountJournal.GetNumMounts() do --  Loop though all mounts
+		-- TODO potential for the C_MountJournal.GetNumDisplayedMounts() to be really small, a cache issue maybe?
+		--      since I am asking for the DisplayedMountInfo() ideally for mounts that aren't in my display, this ends up giving me a nearly empty cache.  Happened once.  Loaded up the mount journal manually and reloaded and all was good.  Potential for future weird bugs here...
 		creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID = C_MountJournal.GetDisplayedMountInfo(i);--   Grab mount spell ID
 		if spellID then
 			MountCache[spellID] = { -- Register spell ID in our cache
 				index = i,
 				creatureName = creatureName,
 				spellID = spellID,
-				mountID = mountID
+				mountID = mountID,
+				icon = icon,
+				isCollected = isCollected,
 			};
 		end
 		-- TODO manually add class specific mounts that aren't in everyone's journal?  Like "Felsteed"
 		--   Mounts that have trouble ATM: Ancient Frostsaber, Plagued Proto-drake, Reins of the Black Proto-Drake (these are flagged as 'Legacy' mounts in Wowhead).  This comment gives more of the 1.4 removed mounts: http://www.wowhead.com/item=12302/reins-of-the-ancient-frostsaber#comments:id=1765130.  wonder if I can search wowhead for all the 'legacy' ones rather than just stumbling upon them?  Swift Spectral Tiger
 	end
+	--[[
+	if NEW_MOUNT_DEBUG == 1 then
+		MountCache[127271].isCollected = true
+	end
+	]]--
 end
 
 function InspectorGadgetzan_OnLoad(self)
@@ -378,6 +416,11 @@ function IGMount(unit)
 	end
 end
 
+function IGMountDebug()
+	buildMountCache()
+	return MountCache
+end
+
 -- What mount is that person on?  Pop mount journal, and also give you the icon if you have it to place on your bar
 function IGMount_Report(mount)
 	if mount == nil then
@@ -406,6 +449,14 @@ function IGMount_Clone()
 	else
 		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted - Unable to clone.")
 	end
+end
+
+function IGNewMountLearnedAlertFrame_OnClick(self, button, down)
+	if AlertFrame_OnClick(self, button, down) then
+		return;
+	end
+
+	IGMount_Show(self.mount.index)
 end
 
 -- # Inspect
@@ -830,7 +881,7 @@ function DropDownMenuTryOn_OnLoad(self)
 		  info.value = v.value
 		  info.tooltipTitle = "Tooltip title" -- not doing anything ATM.  something about a UI setting?
 		  info.tooltipText = v.tooltipText
-		  info.func = DropDownMenuTryOn_OnClick
+		  info.func = DropDownMenuTryOn_OnClick -- TODO this might be putting a warning in Logs/FrameXML.log
 		  UIDropDownMenu_AddButton(info, level)
 	   end
 	end
@@ -1093,7 +1144,42 @@ end
 --------------------------------------------------------------------------------
 -- Event Handler
 --
-local events = { "INSPECT_READY", "PLAYER_LOGIN", "TRANSMOG_COLLECTION_UPDATED" }
+local events = { "COMPANION_LEARNED", "INSPECT_READY", "MOUNT_JOURNAL_SEARCH_UPDATED", "MOUNT_JOURNAL_USABILITY_CHANGED", "PLAYER_LOGIN", "TRANSMOG_COLLECTION_UPDATED" }
+
+function InspectorGadgetzan:NewMountEvent(...)
+	function table.shallow_copy(t)
+		local t2 = {}
+		for k,v in pairs(t) do
+			t2[k] = v
+		end
+		return t2
+	end
+	
+	if IGNewMountLearnedAlertSystem then
+		local oldMountCache = table.shallow_copy(MountCache)
+		buildMountCache()
+		for k, v in pairs(MountCache) do
+			if oldMountCache[v.spellID].isCollected ~= MountCache[v.spellID].isCollected then
+				-- trigger alert
+				IGNewMountLearnedAlertSystem:AddAlert(v.spellID) -- 64658
+				-- should I break the loop at this point because in theory there is only one new one added per event?
+			end
+		end
+	end
+end
+
+function InspectorGadgetzan:COMPANION_LEARNED(...)
+	InspectorGadgetzan:NewMountEvent(...)
+end
+
+function InspectorGadgetzan:MOUNT_JOURNAL_SEARCH_UPDATED(...)
+	-- I think this is the only one of these 3 I need, but I'll leave the others in just in case
+	InspectorGadgetzan:NewMountEvent(...)
+end
+
+function InspectorGadgetzan:MOUNT_JOURNAL_USABILITY_CHANGED(...)
+	InspectorGadgetzan:NewMountEvent(...)
+end
 
 function InspectorGadgetzan:INSPECT_READY(...)
 	createInspectFrameTab()
@@ -1101,6 +1187,7 @@ end
 
 function InspectorGadgetzan:PLAYER_LOGIN(...)
 	IGNewAppearanceLearnedAlertSystem = AlertFrame:AddQueuedAlertFrameSubSystem("IGNewAppearanceLearnedAlertFrameTemplate", IGNewAppearanceLearnedAlertFrame_SetUp, 2, 6);
+	IGNewMountLearnedAlertSystem = AlertFrame:AddQueuedAlertFrameSubSystem("IGNewMountLearnedAlertFrameTemplate", IGNewMountLearnedAlertFrame_SetUp, 2, 6);
 	buildMountCache()
 end
 
@@ -1149,7 +1236,7 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		-- if it is a unique appearance, or you have unlocked all the appearances, say so
 		if #sources == 1 then
 			bonus_msg = "Unique Appearance Unlocked - "
-			bonus_share_msg = " the unique "
+			bonus_share_msg = "the unique "
 			-- TODO play a sound
 		elseif #unCollectedNames == 0 then
 			bonus_msg = "All sources of this appearance collected. "

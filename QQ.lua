@@ -292,6 +292,7 @@ print(testTableAddOutOfOrder())
 IGNewAppearanceLearnedAlertSystem:AddAlert("Appearance Link", nil, 9610)
 
 -- good sounds..
+--   http://www.wowhead.com/sounds/ for more
 
 PlaySound("UI_OrderHall_Talent_Ready_Toast")
 PlaySound("UI_Garrison_Toast_FollowerGained")
@@ -304,3 +305,13 @@ PlaySoundKitID(51561);	-- UI_Warforged_Item_Loot_Toast
 PlaySound("LFG_Rewards")
 PlaySound("UI_LegendaryLoot_Toast");
 PlaySound("UI_Professions_NewRecipeLearned_Toast");
+
+-- Could I track "COMPANION_LEARNED" event and give a toast for new mounts?
+-- MOUNT_JOURNAL_SEARCH_UPDATED
+-- MOUNT_JOURNAL_USABILITY_CHANGED
+-- COMPANION_UPDATE is the only one with an arg, but it is just "MOUNT"
+-- before that, the CHAT_MSG_SYSTEM did have the text of the it learning in the arg 1, and before that a UNIT_SPELLCAST_SENT had the spell in there -- but that is learning from your bags.
+
+-- Piandao still has 3 turtle mounts in her bags.  She'll hold on to them for now to test this later.
+
+IGNewMountLearnedAlertSystem:AddAlert(64658)
