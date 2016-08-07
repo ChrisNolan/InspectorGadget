@@ -199,6 +199,7 @@ function InspectorGadgetzan:OnInitialize()
 	AceConfigDialog:AddToBlizOptions(addonName, addonTitle)
 	self.icon:Register(addonName, addon.LDBstub, self.db.profile.minimap)
 	self:RegisterComm("NewAppearance")
+	self:RegisterStaticPopups()
 end
 
 function InspectorGadgetzan:OnEnable()
@@ -250,6 +251,23 @@ function InspectorGadgetzan:OnCommReceived(prefix, message, distribution, sender
 	else
 		if debugLevel then self:Print(prefix..message..distribution..sender) end
 	end
+end
+
+function InspectorGadgetzan:RegisterStaticPopups()
+	-- http://wowwiki.wikia.com/wiki/Creating_simple_pop-up_dialog_boxes
+	StaticPopupDialogs["IGMount_Show"] = {
+		text = addonTitle .. "\n\nMounted on: " .. YELLOW .. "%s|r.\n\n%s",
+		button1 = OKAY,
+		button2 = nil,
+		OnAccept = function()
+		--GreetTheWorld()
+		end,
+		timeout = 0,
+		whileDead = false,
+		hideOnEscape = true,
+		sound = "igCharacterInfoOpen",
+		preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
+	}
 end
 
 --[[ -- I'm using just the text of the tooltip return atm because these were tricky to wrap my head around.  I like the idea of using them though so let's keep them around for the time being
@@ -359,13 +377,13 @@ end
 
 local function buildMountCache()
 	local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID
-	for i = 1, C_MountJournal.GetNumMounts() do --  Loop though all mounts
+	for k, v in pairs(C_MountJournal.GetMountIDs()) do --  Loop though all mounts
 		-- TODO potential for the C_MountJournal.GetNumDisplayedMounts() to be really small, a cache issue maybe?
 		--      since I am asking for the DisplayedMountInfo() ideally for mounts that aren't in my display, this ends up giving me a nearly empty cache.  Happened once.  Loaded up the mount journal manually and reloaded and all was good.  Potential for future weird bugs here...
-		creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID = C_MountJournal.GetDisplayedMountInfo(i);--   Grab mount spell ID
+		creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, isFiltered, isCollected, mountID = C_MountJournal.GetMountInfoByID(v);--   Grab mount spell ID
 		if spellID then
 			MountCache[spellID] = { -- Register spell ID in our cache
-				index = i,
+				index = false,
 				creatureName = creatureName,
 				spellID = spellID,
 				mountID = mountID,
@@ -373,8 +391,12 @@ local function buildMountCache()
 				isCollected = isCollected,
 			};
 		end
-		-- TODO manually add class specific mounts that aren't in everyone's journal?  Like "Felsteed"
-		--   Mounts that have trouble ATM: Ancient Frostsaber, Plagued Proto-drake, Reins of the Black Proto-Drake (these are flagged as 'Legacy' mounts in Wowhead).  This comment gives more of the 1.4 removed mounts: http://www.wowhead.com/item=12302/reins-of-the-ancient-frostsaber#comments:id=1765130.  wonder if I can search wowhead for all the 'legacy' ones rather than just stumbling upon them?  Swift Spectral Tiger
+	end
+	for i = 1, C_MountJournal.GetNumMounts() do --  Loop though all mounts we can see in the journal to store the index
+		spellID = select(2, C_MountJournal.GetDisplayedMountInfo(i)) --   Grab mount spell ID
+		if spellID then
+			MountCache[spellID].index = i
+		end
 	end
 	--[[
 	if NEW_MOUNT_DEBUG == 1 then
@@ -388,15 +410,25 @@ function InspectorGadgetzan_OnLoad(self)
 end
 
 -- show the mount journal
-local function IGMount_Show(index)
-	if (not CollectionsJournal) then
-		CollectionsJournal_LoadUI();
+local function IGMount_Show(mount)
+	if mount.index then
+		if (not CollectionsJournal) then
+			CollectionsJournal_LoadUI();
+		end
+		if (not CollectionsJournal:IsShown()) then
+			ShowUIPanel(CollectionsJournal);
+		end
+		StaticPopup_Hide ("IGMount_Show")
+		CollectionsJournal_SetTab(CollectionsJournal, 1);
+		MountJournal_Select(mount.index);
+	else
+		-- some mounts we can't see in the Mount Journal so we will give a little popup instead
+		local creatureDisplayID, descriptionText, sourceText, isSelfMount, mountType = C_MountJournal.GetMountInfoExtraByID(mount.mountID)
+		addon:Print(sourceText)
+		local details = (descriptionText or "") .. "\n\n" .. (sourceText or "")
+		--details = format("%s\n\nhttp://wowhead.com/spell=%s", details, mount.spellID)
+		StaticPopup_Show ("IGMount_Show", mount.creatureName, details)
 	end
-	if (not CollectionsJournal:IsShown()) then
-		ShowUIPanel(CollectionsJournal);
-	end
-	CollectionsJournal_SetTab(CollectionsJournal, 1);
-	MountJournal_Select(index);
 end
 
 
@@ -431,7 +463,7 @@ function IGMount_Report(mount)
 		if InspectorGadgetzan.db.profile.pickupMount then
 			C_MountJournal.Pickup(mount.index)
 		end
-		IGMount_Show(mount.index)
+		IGMount_Show(mount)
 	else
 		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted")
 	end
@@ -456,7 +488,7 @@ function IGNewMountLearnedAlertFrame_OnClick(self, button, down)
 		return;
 	end
 
-	IGMount_Show(self.mount.index)
+	IGMount_Show(self.mount)
 end
 
 -- # Inspect
