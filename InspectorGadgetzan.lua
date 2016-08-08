@@ -310,7 +310,7 @@ end
 function IGNewAppearanceLearnedAlertFrame_SetUp(self, sourceID, bonus_msg)
 	if sourceID then
 		local _, _, _, itemTexture, _, itemLink, appearanceLink = C_TransmogCollection.GetAppearanceSourceInfo(sourceID)
-		if itemLink then
+		if appearanceLink then
 			--PlaySound("UI_Professions_NewRecipeLearned_Toast")
 			-- TODO should we play a different sound if it is a unique appearance, or the final item?
 			PlaySound("UI_Garrison_Toast_FollowerGained")
