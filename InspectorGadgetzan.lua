@@ -120,6 +120,70 @@ local options = {
 	handler = InspectorGadgetzan,
 	type = 'group',
 	args = {
+		announcements = {
+			name = 'Announcements',
+			type = 'group',
+			order = 50,
+			args = {
+				chatlog = {
+					type = 'toggle',
+					name = 'Log new appearances to personal chat',
+					desc = 'Optionally create a new Chat Window named "Inspector Gadgetzan" to keep them in one place',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.chatlog = not InspectorGadgetzan.db.profile.announcements.chatlog end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.chatlog or false end,
+					width = 'full',
+					order = 50,
+				},
+				withParty = {
+					type = 'toggle',
+					name = 'Share new appearances with party',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.withParty = not InspectorGadgetzan.db.profile.announcements.withParty end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.withParty or false end,
+					width = 'full',
+				},
+				withGuild = {
+					type = 'toggle',
+					name = 'Share new appearances with guild',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.withGuild = not InspectorGadgetzan.db.profile.announcements.withGuild end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.withGuild or false end,
+					width = 'full',
+				},
+				fromParty = {
+					type = 'toggle',
+					name = 'Listen to new appearances from party members',
+					desc = 'Only applies if they are also using this addon',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.fromParty = not InspectorGadgetzan.db.profile.announcements.fromParty end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.fromParty or false end,
+					width = 'full',
+					order = 200,
+				},
+				fromGuild = {
+					type = 'toggle',
+					name = 'Listen to new appearances from  guild members',
+					desc = 'Only applies if they are also using this addon',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.fromGuild = not InspectorGadgetzan.db.profile.announcements.fromGuild end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.fromGuild or false end,
+					width = 'full',
+					order = 200,
+				},
+				appearanceAlert = {
+					type = 'toggle',
+					name = 'Popup an alert when you get a new appearance',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.appearanceAlert = not InspectorGadgetzan.db.profile.announcements.appearanceAlert end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.appearanceAlert or false end,
+					width = 'full',
+					order = 300,
+				},
+				mountAlert = {
+					type = 'toggle',
+					name = 'Popup an alert when you learn a new mount',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.mountAlert = not InspectorGadgetzan.db.profile.announcements.mountAlert end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.mountAlert or false end,
+					width = 'full',
+					order = 300,
+				},
+			},
+		},
 		minimap = {
 			name = 'Minimap',
 			type = 'group',
@@ -134,26 +198,44 @@ local options = {
 				},
 			},
 		},
-		pickupMount = {
-			type = 'toggle',
-			name = 'Pickup Mount on Report',
-			desc = 'If you have the mount you are inspecting, would you like the mount icon to be added automatically to your mouse cursor so you can place on a toolbar',
-			set = function(info, val) InspectorGadgetzan.db.profile.pickupMount = not InspectorGadgetzan.db.profile.pickupMount end,
-			get = function(info) return InspectorGadgetzan.db.profile.pickupMount or false end,
-			width = 'full', -- this keeps the checkboxes on one line each
+		misc = {
+			name = 'Miscellaneous',
+			type = 'group',
+			order = 999,
+			args = {
+				pickupMount = {
+					type = 'toggle',
+					name = 'Pickup Mount on Report',
+					desc = 'If you have the mount you are inspecting, would you like the mount icon to be added automatically to your mouse cursor so you can place on a toolbar',
+					set = function(info, val) InspectorGadgetzan.db.profile.misc.pickupMount = not InspectorGadgetzan.db.profile.misc.pickupMount end,
+					get = function(info) return InspectorGadgetzan.db.profile.misc.pickupMount or false end,
+					width = 'full', -- this keeps the checkboxes on one line each
+				},
+			},
 		},
 	},
 }
 local defaults = {
 	profile = {
+		announcements = {
+			chatlog = true,
+			withParty = true,
+			withGuild = true,
+			fromParty = true,
+			fromGuild = true,
+			appearanceAlert = true,
+			mountAlert = true,
+		},
 		minimap = {
 			hide = false,
 			-- setting a default position - the idea is so it won't be buried under all the other icons that start in the same spot which the user never moves
 			--   there is some concern this might break in non-stand UIs...
 			minimapPos = 11.8886764296701,
 		},
-		pickupMount = false,
-		chatframeName = "Inspector Gadgetzan",
+		misc = {
+			pickupMount = false,
+		},
+		chatframeName = addonTitle,
 	}
 }
 local optionsTable = LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, options, nil)
@@ -243,8 +325,18 @@ function InspectorGadgetzan:OnCommReceived(prefix, message, distribution, sender
 	if prefix == "NewAppearance" then
 		if sender ~= UnitName("player") then
 			if message ~= self.lastCommMessage then
-				-- TODO make the 'sender' in the message a player link
-				self:Printcf(self:ChatFrame(), CHAT_COLOR[distribution].intensity, "[%s] %s|r", sender, message)
+				local displayMessage = true
+				if (distribution == 'PARTY' or distribution == 'RAID' or distribution == 'INSTANCE_CHAT') and not(self.db.profile.announcements.fromParty) then
+					displayMessage = false
+				end
+				if distribution == 'GUILD' and not(self.db.profile.announcements.fromGuild) then
+					displayMessage = false
+				end
+				-- TODO when I made it not duplicate party and guild messages, but then added the logic to exclude them... there is a case where if you are in a party with a guildy, and want to see party messages, but not guild messages, since they are in your guild you won't see the message.  Will have to see if people want the special condition of getting messages from party mates who are guildies but not all guildies and I'll redesign, otherwise that is ok with me.
+				if displayMessage then
+					-- TODO make the 'sender' in the message a player link
+					self:Printcf(self:ChatFrame(), CHAT_COLOR[distribution].intensity, "[%s] %s|r", sender, message)
+				end
 			end
 			self.lastCommMessage = message
 		end
@@ -460,7 +552,7 @@ function IGMount_Report(mount)
 	end
 	if mount then
 		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
-		if InspectorGadgetzan.db.profile.pickupMount then
+		if InspectorGadgetzan.db.profile.misc.pickupMount then
 			C_MountJournal.Pickup(mount.index)
 		end
 		IGMount_Show(mount)
@@ -1186,7 +1278,7 @@ function InspectorGadgetzan:NewMountEvent(...)
 		return t2
 	end
 	
-	if IGNewMountLearnedAlertSystem then
+	if IGNewMountLearnedAlertSystem and self.db.profile.announcements.mountAlert then
 		local oldMountCache = table.shallow_copy(MountCache)
 		buildMountCache()
 		for k, v in pairs(MountCache) do
@@ -1271,23 +1363,27 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		elseif #unCollectedNames == 0 then
 			bonus_msg = "All sources of this appearance collected. "
 		end
-		IGNewAppearanceLearnedAlertSystem:AddAlert(sourceID, bonus_msg)
-		self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
+		if self.db.profile.announcements.appearanceAlert then
+			IGNewAppearanceLearnedAlertSystem:AddAlert(sourceID, bonus_msg)
+		end
+		if self.db.profile.announcements.chatlog then
+			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
+		end
 		share_msg = format(SHARE_LEARN_TRANSMOG_S, bonus_share_msg, appearanceLink)
-		if (IsInGuild()) then
+		if (IsInGuild()) and self.db.profile.announcements.withGuild then
 			self:SendCommMessage("NewAppearance", share_msg, "GUILD")
 		end
 		local groupFallthrough = IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup(LE_PARTY_CATEGORY_HOME) and "PARTY" or false
-		if groupFallthrough then
+		if groupFallthrough and self.db.profile.announcements.withParty  then
 			self:SendCommMessage("NewAppearance", share_msg, groupFallthrough)
 		end
-		if #unCollectedNames > 0 then
+		if #unCollectedNames > 0 and self.db.profile.announcements.chatlog then
 			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
 		end
 		self.latestAppearanceLink = appearanceLink
 	elseif latestAppearanceID == nil then
 		self.latestAppearanceLink = latestAppearanceID
-		if self.firstTRANSMOG_COLLECTION_UPDATED then
+		if self.firstTRANSMOG_COLLECTION_UPDATED and self.db.profile.announcements.chatlog then
 			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "If you just sold or traded an item, an appearance may have been removed from your appearance collection.")
 		else
 			-- kludge to not give the message the first time through.  the event first when first loading
