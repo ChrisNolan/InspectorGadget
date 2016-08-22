@@ -145,6 +145,7 @@ local options = {
 					set = function(info, val) InspectorGadgetzan.db.profile.announcements.fromParty = not InspectorGadgetzan.db.profile.announcements.fromParty end,
 					get = function(info) return InspectorGadgetzan.db.profile.announcements.fromParty or false end,
 					width = 'full',
+					order = 200,
 				},
 				fromGuild = {
 					type = 'toggle',
@@ -153,6 +154,23 @@ local options = {
 					set = function(info, val) InspectorGadgetzan.db.profile.announcements.fromGuild = not InspectorGadgetzan.db.profile.announcements.fromGuild end,
 					get = function(info) return InspectorGadgetzan.db.profile.announcements.fromGuild or false end,
 					width = 'full',
+					order = 200,
+				},
+				appearanceAlert = {
+					type = 'toggle',
+					name = 'Popup an alert when you get a new appearance',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.appearanceAlert = not InspectorGadgetzan.db.profile.announcements.appearanceAlert end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.appearanceAlert or false end,
+					width = 'full',
+					order = 300,
+				},
+				mountAlert = {
+					type = 'toggle',
+					name = 'Popup an alert when you learn a new mount',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.mountAlert = not InspectorGadgetzan.db.profile.announcements.mountAlert end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.mountAlert or false end,
+					width = 'full',
+					order = 300,
 				},
 			},
 		},
@@ -187,6 +205,8 @@ local defaults = {
 			withGuild = true,
 			fromParty = true,
 			fromGuild = true,
+			appearanceAlert = true,
+			mountAlert = true,
 		},
 		minimap = {
 			hide = false,
@@ -1238,7 +1258,7 @@ function InspectorGadgetzan:NewMountEvent(...)
 		return t2
 	end
 	
-	if IGNewMountLearnedAlertSystem then
+	if IGNewMountLearnedAlertSystem and self.db.profile.announcements.mountAlert then
 		local oldMountCache = table.shallow_copy(MountCache)
 		buildMountCache()
 		for k, v in pairs(MountCache) do
@@ -1323,7 +1343,9 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		elseif #unCollectedNames == 0 then
 			bonus_msg = "All sources of this appearance collected. "
 		end
-		IGNewAppearanceLearnedAlertSystem:AddAlert(sourceID, bonus_msg)
+		if self.db.profile.announcements.appearanceAlert then
+			IGNewAppearanceLearnedAlertSystem:AddAlert(sourceID, bonus_msg)
+		end
 		self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
 		share_msg = format(SHARE_LEARN_TRANSMOG_S, bonus_share_msg, appearanceLink)
 		if (IsInGuild()) and self.db.profile.announcements.withGuild then
