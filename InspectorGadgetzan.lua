@@ -123,7 +123,17 @@ local options = {
 		announcements = {
 			name = 'Announcements',
 			type = 'group',
+			order = 50,
 			args = {
+				chatlog = {
+					type = 'toggle',
+					name = 'Log new appearances to personal chat',
+					desc = 'Optionally create a new Chat Window named "Inspector Gadgetzan" to keep them in one place',
+					set = function(info, val) InspectorGadgetzan.db.profile.announcements.chatlog = not InspectorGadgetzan.db.profile.announcements.chatlog end,
+					get = function(info) return InspectorGadgetzan.db.profile.announcements.chatlog or false end,
+					width = 'full',
+					order = 50,
+				},
 				withParty = {
 					type = 'toggle',
 					name = 'Share new appearances with party',
@@ -188,19 +198,27 @@ local options = {
 				},
 			},
 		},
-		pickupMount = {
-			type = 'toggle',
-			name = 'Pickup Mount on Report',
-			desc = 'If you have the mount you are inspecting, would you like the mount icon to be added automatically to your mouse cursor so you can place on a toolbar',
-			set = function(info, val) InspectorGadgetzan.db.profile.pickupMount = not InspectorGadgetzan.db.profile.pickupMount end,
-			get = function(info) return InspectorGadgetzan.db.profile.pickupMount or false end,
-			width = 'full', -- this keeps the checkboxes on one line each
+		misc = {
+			name = 'Miscellaneous',
+			type = 'group',
+			order = 999,
+			args = {
+				pickupMount = {
+					type = 'toggle',
+					name = 'Pickup Mount on Report',
+					desc = 'If you have the mount you are inspecting, would you like the mount icon to be added automatically to your mouse cursor so you can place on a toolbar',
+					set = function(info, val) InspectorGadgetzan.db.profile.misc.pickupMount = not InspectorGadgetzan.db.profile.misc.pickupMount end,
+					get = function(info) return InspectorGadgetzan.db.profile.misc.pickupMount or false end,
+					width = 'full', -- this keeps the checkboxes on one line each
+				},
+			},
 		},
 	},
 }
 local defaults = {
 	profile = {
 		announcements = {
+			chatlog = true,
 			withParty = true,
 			withGuild = true,
 			fromParty = true,
@@ -214,8 +232,10 @@ local defaults = {
 			--   there is some concern this might break in non-stand UIs...
 			minimapPos = 11.8886764296701,
 		},
-		pickupMount = false,
-		chatframeName = "Inspector Gadgetzan",
+		misc = {
+			pickupMount = false,
+		},
+		chatframeName = addonTitle,
 	}
 }
 local optionsTable = LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, options, nil)
@@ -532,7 +552,7 @@ function IGMount_Report(mount)
 	end
 	if mount then
 		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
-		if InspectorGadgetzan.db.profile.pickupMount then
+		if InspectorGadgetzan.db.profile.misc.pickupMount then
 			C_MountJournal.Pickup(mount.index)
 		end
 		IGMount_Show(mount)
@@ -1346,7 +1366,9 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		if self.db.profile.announcements.appearanceAlert then
 			IGNewAppearanceLearnedAlertSystem:AddAlert(sourceID, bonus_msg)
 		end
-		self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
+		if self.db.profile.announcements.chatlog then
+			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, bonus_msg .. ERR_LEARN_TRANSMOG_S, appearanceLink)
+		end
 		share_msg = format(SHARE_LEARN_TRANSMOG_S, bonus_share_msg, appearanceLink)
 		if (IsInGuild()) and self.db.profile.announcements.withGuild then
 			self:SendCommMessage("NewAppearance", share_msg, "GUILD")
@@ -1355,13 +1377,13 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		if groupFallthrough and self.db.profile.announcements.withParty  then
 			self:SendCommMessage("NewAppearance", share_msg, groupFallthrough)
 		end
-		if #unCollectedNames > 0 then
+		if #unCollectedNames > 0 and self.db.profile.announcements.chatlog then
 			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
 		end
 		self.latestAppearanceLink = appearanceLink
 	elseif latestAppearanceID == nil then
 		self.latestAppearanceLink = latestAppearanceID
-		if self.firstTRANSMOG_COLLECTION_UPDATED then
+		if self.firstTRANSMOG_COLLECTION_UPDATED and self.db.profile.announcements.chatlog then
 			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "If you just sold or traded an item, an appearance may have been removed from your appearance collection.")
 		else
 			-- kludge to not give the message the first time through.  the event first when first loading
