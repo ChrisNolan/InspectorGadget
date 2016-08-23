@@ -235,7 +235,7 @@ local defaults = {
 		misc = {
 			pickupMount = false,
 		},
-		chatframeName = addonTitle,
+		chatframeName = 'Inspector Gadgetzan', -- hack for now to make a custom chatframe
 	}
 }
 local optionsTable = LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, options, nil)
@@ -259,9 +259,9 @@ addon.LDBstub = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
 			end
 		elseif button=="RightButton" then
 			if IsShiftKeyDown() then
-				IGMount_Clone()
+				InspectorGadgetzan.Mount:Clone()
 			else
-				IGMount_Report()
+				InspectorGadgetzan.Mount:Report()
 			end			
 		end
 	end,
@@ -391,11 +391,11 @@ function InspectorGadgetzan:CanIMogItGetTooltipText(itemLink)
 end
 ]]--
 
---[[ IGNewAppearanceLearnedAlertFrame / taken from AlertFrameSystems / NewRecipeLearned as a model 
+--[[ 
+------------------------------------------------------------
+Alert Frame Code.
 
-	elseif ( event == "NEW_RECIPE_LEARNED" ) then
-		NewRecipeLearnedAlertSystem:AddAlert(...);
-
+  taken from AlertFrameSystems / NewRecipeLearned as a model 
 
 ]]--
 
@@ -501,8 +501,18 @@ function InspectorGadgetzan_OnLoad(self)
 
 end
 
+--[[
+------------------------------
+Mount Related Functions
+
+]]--
+
+if not(InspectorGadgetzan.Mount) then
+	InspectorGadgetzan.Mount = { parent = InspectorGadgetzan }
+end
+
 -- show the mount journal
-local function IGMount_Show(mount)
+function InspectorGadgetzan.Mount:Show(mount)
 	if mount.index then
 		if (not CollectionsJournal) then
 			CollectionsJournal_LoadUI();
@@ -516,7 +526,7 @@ local function IGMount_Show(mount)
 	else
 		-- some mounts we can't see in the Mount Journal so we will give a little popup instead
 		local creatureDisplayID, descriptionText, sourceText, isSelfMount, mountType = C_MountJournal.GetMountInfoExtraByID(mount.mountID)
-		addon:Print(sourceText)
+		self.parent:Print(sourceText)
 		local details = (descriptionText or "") .. "\n\n" .. (sourceText or "")
 		--details = format("%s\n\nhttp://wowhead.com/spell=%s", details, mount.spellID)
 		StaticPopup_Show ("IGMount_Show", mount.creatureName, details)
@@ -525,39 +535,35 @@ end
 
 
 -- return a table of info about the mount the unit is on
-function IGMount(unit)
+function InspectorGadgetzan.Mount:UnitMount(unit)
 	local i = 1; --    Initialize at index 1
-	if not unit then
-		unit = "playertarget"
-	end
+	if not(unit) then unit = "playertarget" end
 	-- code originally from SDPhantom @ http://www.wowinterface.com/forums/showpost.php?p=314055&postcount=2
 	while true do-- Infinite loop, we'll break manually
 		local _,_,_,_,_,_,_,_,_,_,spellid=UnitBuff(unit,i);--   Grab buff info
 		if spellid then--   If we have a buff, we have a spell ID
-			if MountCache[spellid] then return MountCache[spellid]; end--   Return SpellID if mount is found
+			if MountCache[spellid] then
+				self.mount = MountCache[spellid]
+				return MountCache[spellid] --   Return mount table if mount is found
+			end
 			i=i+1;--    Increment by 1 and try again
 		else break; end--   Else break loop if no more buffs
 	end
 end
 
-function IGMountDebug()
-	buildMountCache()
-	return MountCache
-end
-
 -- What mount is that person on?  Pop mount journal, and also give you the icon if you have it to place on your bar
-function IGMount_Report(mount)
+function InspectorGadgetzan.Mount:Report(mount)
 	if mount == nil then
-		mount = IGMount("playertarget")
+		mount = self:UnitMount("playertarget")
 	end
 	if mount then
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
-		if InspectorGadgetzan.db.profile.misc.pickupMount then
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		if self.parent.db.profile.misc.pickupMount then
 			C_MountJournal.Pickup(mount.index)
 		end
-		IGMount_Show(mount)
+		self:Show(mount)
 	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted")
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted")
 	end
 end
 
@@ -565,22 +571,23 @@ end
 -- TODO Future feature: register the player in question, and if they change their mount, you change yours too (if it is safe to do so etc.)
 --      More for when you're waiting around for a pull, or sitting in the capital city etc and people are messing around with their collections
 --      Maybe call it 'mirror' instead of 'clone'?
-function IGMount_Clone()
-	local mount = IGMount("playertarget")
+function InspectorGadgetzan.Mount:Clone()
+	local mount = self:UnitMount("playertarget")
 	if mount then
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		C_MountJournal.SummonByID(mount.mountID)
 	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted - Unable to clone.")
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted - Unable to clone.")
 	end
 end
 
+-- TODO can this function be moved up now that the function is defined differently?  Test before committing
 function IGNewMountLearnedAlertFrame_OnClick(self, button, down)
 	if AlertFrame_OnClick(self, button, down) then
 		return;
 	end
 
-	IGMount_Show(self.mount)
+	InspectorGadgetzan.Mount:Show(self.mount)
 end
 
 -- # Inspect
@@ -1111,7 +1118,7 @@ local function IGWardrobeFrame_UpdateButtons()
 	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeSecondaryHandText);
 	
 	-- Set the mount header info
-	local mount = IGMount(InspectFrame.unit)
+	local mount = InspectorGadgetzan.Mount:UnitMount(InspectFrame.unit)
 	if mount then
 		local button = InspectorGadgetzanWardrobeMountMicroButton
 		local prefix = "Interface\\Buttons\\UI-MicroButton-";
@@ -1404,13 +1411,13 @@ local IGCommandTable = {
 	end,
 	["mount"] = {
 		["clone"] = function()
-			IGMount_Clone()
+			InspectorGadgetzan.Mount:Clone()
 		end,
 		["report"] = function()
-			IGMount_Report()
+			InspectorGadgetzan.Mount:Report()
 		end,
 		[""] = function()  -- default
-			IGMount_Report()
+			InspectorGadgetzan.Mount:Report()
 		end,
 		["help"] = "Inspector Gadgetzan mount commands: clone, report",
 	},
