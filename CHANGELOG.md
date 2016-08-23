@@ -1,4 +1,10 @@
-# Changelog
+## v7.0.3.8
+
+### Options
+
+More options have been added to the interface options panel where you can have more control over what messages you see and share.  If you're in a large guild, it might get busy seeing everyone's new transmog all the time (if they are also using the addon) so you can turn that off now.  Also, if you don't want to share your new appearances with them, you can control that as well.
+
+Additionally as more addons catch-up and add the feature of printing out new appearances to chat, you can now disable the message from this addon to eliminate duplicates.
 
 ## v7.0.3.7
 
