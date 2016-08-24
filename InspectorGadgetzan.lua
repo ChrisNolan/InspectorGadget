@@ -694,13 +694,23 @@ function InspectorGadgetzan:InventorySlotIDByName(slotName)
 	return slotID
 end
 
+-- return a list of the buttons used in the GUI
+function InspectorGadgetzan:WardrobeButtons(buttonGroup)
+	-- valid buttonGroups atm "Slot"/"Text" from the .xml
+	local buttons = {}
+	for k, v in pairs(inventorySlotNames) do
+		buttons[k] = _G["InspectorGadgetzanWardrobe" .. v .. buttonGroup]
+	end
+	return buttons
+end
+
 function InspectorGadgetzan:SetWardrobeButtons(itemLink, appearanceLink, categoryID, sourceID)
 	if not(transmogCategories[categoryID]) then return false end -- better way to handle?
 	-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
 	local slot = transmogCategories[categoryID].slot
 	if slot == "MainHand" then
 		-- If it goes in the main hand, but the main hand has something, then they are dual wielding and display it in the offhand.
-		if InspectorGadgetzanWardrobeMainHandSlot.itemLink then
+		if itemLink and InspectorGadgetzanWardrobeMainHandSlot.itemLink then
 			slot = "SecondaryHand"
 		end
 	end
@@ -878,6 +888,7 @@ local function MyDressUpSources(appearanceSources, mainHandEnchant, offHandEncha
 			end
 		--end
 	end
+	-- TODO test why dual weilder's don't seem to dressup the offhand
 
 	--print("Trying on weapons now")
 	--DressUpModel:TryOn(appearanceSources[mainHandSlotID], "MAINHANDSLOT", mainHandEnchant);
@@ -1014,34 +1025,13 @@ function IGWardrobeItemTextButton_OnClick(self)
 end
 
 local function IGWardrobeFrame_UpdateButtons()
-	-- don't like code like this... snazzy it up some day
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeHeadSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeShoulderSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeBackSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeChestSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeShirtSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeTabardSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeWristSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeHandsSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeWaistSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeLegsSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeFeetSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeMainHandSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeSecondaryHandSlot);
+	for k, button in pairs(InspectorGadgetzan:WardrobeButtons("Slot")) do
+		IGWardrobeItemSlotButton_Update(button)
+	end
 	
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeHeadText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeShoulderText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeBackText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeChestText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeShirtText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeTabardText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeWristText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeHandsText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeWaistText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeLegsText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeFeetText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeMainHandText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeSecondaryHandText);
+	for k, button in pairs(InspectorGadgetzan:WardrobeButtons("Text")) do
+		IGWardrobeItemTextButton_Update(button)
+	end
 	
 	-- Set the mount header info
 	local mount = InspectorGadgetzan.Mount:UnitMount(InspectFrame.unit)
@@ -1067,43 +1057,9 @@ end
 
 -- Opposite of UpdateButtons
 local function IGWardrobeFrame_ClearButtons()
-	-- don't like code like this... snazzy it up some day
-	InspectorGadgetzanWardrobeHeadSlot.itemLink = nil
-	InspectorGadgetzanWardrobeShoulderSlot.itemLink = nil
-	InspectorGadgetzanWardrobeBackSlot.itemLink = nil
-	InspectorGadgetzanWardrobeChestSlot.itemLink = nil
-	InspectorGadgetzanWardrobeShirtSlot.itemLink = nil
-	InspectorGadgetzanWardrobeTabardSlot.itemLink = nil
-	InspectorGadgetzanWardrobeWristSlot.itemLink = nil
-	InspectorGadgetzanWardrobeHandsSlot.itemLink = nil
-	InspectorGadgetzanWardrobeWaistSlot.itemLink = nil
-	InspectorGadgetzanWardrobeLegsSlot.itemLink = nil
-	InspectorGadgetzanWardrobeFeetSlot.itemLink = nil
-	InspectorGadgetzanWardrobeMainHandSlot.itemLink = nil
-	InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = nil
-
-	InspectorGadgetzanWardrobeHeadText.appearanceLink= nil
-	InspectorGadgetzanWardrobeShoulderText.appearanceLink= nil
-	InspectorGadgetzanWardrobeBackText.appearanceLink= nil
-	InspectorGadgetzanWardrobeChestText.appearanceLink= nil
-	InspectorGadgetzanWardrobeShirtText.appearanceLink= nil
-	InspectorGadgetzanWardrobeTabardText.appearanceLink= nil
-	InspectorGadgetzanWardrobeWristText.appearanceLink= nil
-	InspectorGadgetzanWardrobeHandsText.appearanceLink= nil
-	InspectorGadgetzanWardrobeWaistText.appearanceLink= nil
-	InspectorGadgetzanWardrobeLegsText.appearanceLink= nil
-	InspectorGadgetzanWardrobeFeetText.appearanceLink= nil
-	InspectorGadgetzanWardrobeMainHandText.appearanceLink= nil
-	InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink= nil
-	
-	--[[TODO I need to clear all the other attributes I set on the text button now too, don't I?
-	e.g. refactor time!
-	InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
-	InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
-	InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
-	InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
-	InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
-	]]--
+	for categoryID, v in pairs(transmogCategories) do
+		InspectorGadgetzan:SetWardrobeButtons(nil, nil, categoryID, nil)
+	end
 end
 
 -- Change the ItemSlot to match the links attached to it
