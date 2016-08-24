@@ -255,7 +255,7 @@ addon.LDBstub = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
 			if IsAltKeyDown() then
 				InspectorGadgetzan:OpenConfig()
 			else
-				IGInspect_Show()
+				InspectorGadgetzan.Inspect:Show()
 			end
 		elseif button=="RightButton" then
 			if IsShiftKeyDown() then
@@ -590,30 +590,21 @@ function IGNewMountLearnedAlertFrame_OnClick(self, button, down)
 	InspectorGadgetzan.Mount:Show(self.mount)
 end
 
--- # Inspect
+--------------------------------------------------
+-- Inspect
 -- 
--- http://wowprogramming.com/docs/api_categories#inspect
--- http://wow.gamepedia.com/API_CheckInteractDistance
--- http://wow.gamepedia.com/API_NotifyInspect
--- http://wow.gamepedia.com/API_InspectUnit
--- Code to monitor your own item level and notify you of a change http://www.wowinterface.com/forums/showpost.php?p=308065&postcount=7
--- Code to add an item level to the player tooltip: http://www.wowinterface.com/forums/showpost.php?p=304938&postcount=2
--- Internally, this is the code used on the default inspect screen for your own character to show your ilvl https://www.townlong-yak.com/framexml/19831/PaperDollFrame.lua#1458
--- Use Addon Messages to respond with the info rather than via inspect?  i.e. for iLvl if party members are using the addon too, get it from them?  Could we do account-wide stuff too?  i.e sure this shaman is only 701, but they have two toons which are 725 so cut them some slack?
--- Interface/AddOns/Blizzard_InspectUI
--- http://wow.gamepedia.com/API_GetItemTransmogrifyInfo
--- Couple other inspect addons to review: http://mods.curse.com/addons/wow/examiner, http://mods.curse.com/addons/wow/inspect-equip
--- 7.0 changed a bunch.... current research:
---    InspectPaperDoll - InspectpaperDollViewButton_OnClick() calling C_TransmogCollection.GetInspectSources()
---    FrameXML/DressUpFrames.lua / DressUpFrame_Show() + DressUpSources()
+
+if not(InspectorGadgetzan.Inspect) then
+	InspectorGadgetzan.Inspect = { parent = InspectorGadgetzan }
+end
 
 
-function IGInspect_Show()
+function InspectorGadgetzan.Inspect:Show()
 	if (UnitPlayerControlled("target") and CheckInteractDistance("target", 1) and not UnitIsUnit("player", "target")) then
 		InspectorGadgetzanWardrobeFrame:RegisterEvent("INSPECT_READY")
 		InspectUnit("target")
 	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.") -- TODO make this red for an error
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.") -- TODO make this red for an error
 	end
 end
 
@@ -684,7 +675,7 @@ inventorySlotNames[INVSLOT_FEET] = "Feet"
 inventorySlotNames[INVSLOT_MAINHAND] = "MainHand"
 inventorySlotNames[INVSLOT_OFFHAND] = "SecondaryHand"
 
-function InspectorGadgetzan:InventorySlotIDByName(slotName)
+function InspectorGadgetzan.Inspect:InventorySlotIDByName(slotName)
 	local slotID = nil
 	for k, v in pairs(inventorySlotNames) do
 		if v == slotName then
@@ -704,7 +695,7 @@ function InspectorGadgetzan:WardrobeButtons(buttonGroup)
 	return buttons
 end
 
-function InspectorGadgetzan:SetWardrobeButtons(itemLink, appearanceLink, categoryID, sourceID)
+function InspectorGadgetzan.Inspect:SetWardrobeButtons(itemLink, appearanceLink, categoryID, sourceID)
 	if not(transmogCategories[categoryID]) then return false end -- better way to handle?
 	-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
 	local slot = transmogCategories[categoryID].slot
@@ -727,52 +718,25 @@ end
 
 -- Moves the inspect sources into the buttons and text fields 
 --   if debugLevel is set, it'll also dump them to the chat
-local function IGInspectSourcesDump()
+function InspectorGadgetzan.Inspect:ProcessSources()
 
 	local appearanceSources = C_TransmogCollection.GetInspectSources()
 
 	if appearanceSources then
-		if debugLevel then addon:Print(InspectorGadgetzan:ChatFrame(), "Appearances Dump") end
+		if debugLevel then self.parent:Print(InspectorGadgetzan:ChatFrame(), "Appearances Dump") end
 		for i = 1, #appearanceSources do
 			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
-				-- TODO should I local these?
-				categoryID , appearanceID, unknownBoolean1, itemTexture, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
+				local categoryID , appearanceID, unknownBoolean1, itemTexture, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
 				if debugLevel then
-					addon:Printf(InspectorGadgetzan:ChatFrame(), "%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink)
+					self.parent:Printf(InspectorGadgetzan:ChatFrame(), "%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink)
 					-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
 				end
-				InspectorGadgetzan:SetWardrobeButtons(itemLink, appearanceLink, categoryID, appearanceSources[i])
+				self:SetWardrobeButtons(itemLink, appearanceLink, categoryID, appearanceSources[i])
 			end
 		end
 	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "not ready")
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "not ready")
 	end
-end
-
-function IGWardrobeViewButton_OnLoad(self)
-	self:SetWidth(30 + self:GetFontString():GetStringWidth());
-end
-
--- Deals with Tooltips when you mouse over
-function IGWardrobeViewButton_OnEnter(self)
-	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-	GameTooltip:AddLine("Try on in the Dressing Room")
-	if not(CanIMogIt) then
-		GameTooltip:AddLine("Seeing all "..RED_DULL.."RED|r?", 1.0,1.0,1.0)
-		GameTooltip:AddLine("Please install/enable "..YELLOW.."CanIMogIt|r Addon to enable these features fully", 1.0,1.0,1.0)
-	else
-		GameTooltip:AddLine("* 'All' will try on all appearances", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("* 'Wearable' will only try on the "..BLUE.."blue|r and "..BLUE_GREEN.."green|r highlighted items.", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("These are the ones which work for your class.", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("* 'In Collection' will try on the "..BLUE.."blue|r appearances, regardless of class,", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("which works well imagining what it'll look like on an alt.", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine(" ")
-		GameTooltip:AddLine("The "..RED_DULL.."red|r items are not known to you, and aren't learnable by this character.", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine(" ")
-		GameTooltip:AddLine("If I need such a long tooltip, I need to re-think the UI, eh?")
-	end
-	GameTooltip:Show()
-	CursorUpdate(self)
 end
 
 
@@ -802,7 +766,7 @@ local NOTKNOWN_YES =3  -- Orange & Enabled
 local NOTKNOWN_NO = 4  -- Yellow & Disabled
 local CANTKNOW =	5
 
-function InspectorGadgetzan:ItemTransmogStatus(itemLink)
+function InspectorGadgetzan.Inspect:ItemTransmogStatus(itemLink)
 	local itemID = GetItemInfoInstant(itemLink)
 	if itemID == 134110 or itemID == 134111 or itemID == 134112 then return KNOWN_YES end -- Hack for the 'Hidden Helm/Cloak/Shoulders'
 	if CanIMogIt then
@@ -895,14 +859,40 @@ local function MyDressUpSources(appearanceSources, mainHandEnchant, offHandEncha
 	--DressUpModel:TryOn(appearanceSources[secondaryHandSlotID], "SECONDARYHANDSLOT", offHandEnchant);
 end
 
-function IGWardrobeViewButton_OnClick(self)
-	PlaySound("igMainMenuOptionCheckBoxOn");
-	MyDressUpSources(InspectorGadgetzanAppearanceSources(UIDropDownMenu_GetSelectedValue(DropDownMenuTryOn)));
+function IGWardrobeViewButton_OnLoad(self)
+	self:SetWidth(30 + self:GetFontString():GetStringWidth());
 end
 
-function InspectorGadgetzanAppearanceSourcesCheck(flag, button)
+-- Deals with Tooltips when you mouse over
+function IGWardrobeViewButton_OnEnter(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:AddLine("Try on in the Dressing Room")
+	if not(CanIMogIt) then
+		GameTooltip:AddLine("Seeing all "..RED_DULL.."RED|r?", 1.0,1.0,1.0)
+		GameTooltip:AddLine("Please install/enable "..YELLOW.."CanIMogIt|r Addon to enable these features fully", 1.0,1.0,1.0)
+	else
+		GameTooltip:AddLine("* 'All' will try on all appearances", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'Wearable' will only try on the "..BLUE.."blue|r and "..BLUE_GREEN.."green|r highlighted items.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("These are the ones which work for your class.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'In Collection' will try on the "..BLUE.."blue|r appearances, regardless of class,", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("which works well imagining what it'll look like on an alt.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("The "..RED_DULL.."red|r items are not known to you, and aren't learnable by this character.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("If I need such a long tooltip, I need to re-think the UI, eh?")
+	end
+	GameTooltip:Show()
+	CursorUpdate(self)
+end
+
+function IGWardrobeViewButton_OnClick(self)
+	PlaySound("igMainMenuOptionCheckBoxOn");
+	MyDressUpSources(InspectorGadgetzan.Inspect:AppearanceSources(UIDropDownMenu_GetSelectedValue(DropDownMenuTryOn)));
+end
+
+function InspectorGadgetzan.Inspect:AppearanceSourcesCheck(flag, button)
 	if flag == APPEARANCE_SOURCES_ALL then return true end
-	local itemTransmogStatus = InspectorGadgetzan:ItemTransmogStatus(button.itemLink)
+	local itemTransmogStatus = InspectorGadgetzan.Inspect:ItemTransmogStatus(button.itemLink)
 	if flag == APPEARANCE_SOURCES_SELECTED then
 		if itemTransmogStatus == KNOWN_YES or itemTransmogStatus == NOTKNOWN_YES then
 			return true
@@ -916,7 +906,7 @@ function InspectorGadgetzanAppearanceSourcesCheck(flag, button)
 	end
 end
 
-function InspectorGadgetzanAppearanceSources(flag)
+function InspectorGadgetzan.Inspect:AppearanceSources(flag)
 	if not(flag) then flag = APPEARANCE_SOURCES_ALL end
 	-- array of appearanceSources is:
 	--   1 - subarray of
@@ -926,7 +916,7 @@ function InspectorGadgetzanAppearanceSources(flag)
 	local appearanceSources = {}
 	for k, v in pairs(inventorySlotNames) do
 		button = _G["InspectorGadgetzanWardrobe" .. v .. "Text"]
-		if button.appearanceLink and button.slotID and InspectorGadgetzanAppearanceSourcesCheck(flag, button) then
+		if button.appearanceLink and button.slotID and self:AppearanceSourcesCheck(flag, button) then
 			appearanceSources[button.slotID] = button.sourceID
 		end
 	end
@@ -1058,7 +1048,7 @@ end
 -- Opposite of UpdateButtons
 local function IGWardrobeFrame_ClearButtons()
 	for categoryID, v in pairs(transmogCategories) do
-		InspectorGadgetzan:SetWardrobeButtons(nil, nil, categoryID, nil)
+		InspectorGadgetzan.Inspect:SetWardrobeButtons(nil, nil, categoryID, nil)
 	end
 end
 
@@ -1091,7 +1081,7 @@ end
 -- Change the ItemText to match the links attached to it
 function IGWardrobeItemTextButton_Update(button)
 	if button.appearanceLink then
-		local itemTransmogStatus = InspectorGadgetzan:ItemTransmogStatus(button.itemLink)
+		local itemTransmogStatus = InspectorGadgetzan.Inspect:ItemTransmogStatus(button.itemLink)
 		local color = itemTransmogStatues[itemTransmogStatus].color
 		local enabled = itemTransmogStatues[itemTransmogStatus].enabled
 		button:SetText(color .. button.appearanceLink:match("%[.*%]"):gsub("%[", ""):gsub("%]",""))
@@ -1115,7 +1105,7 @@ function IGWardrobe_OnLoad()
 		CollectionsJournal_LoadUI();
 	end
 	IGWardrobeFrame_ClearButtons()
-	IGInspectSourcesDump()
+	InspectorGadgetzan.Inspect:ProcessSources()
 	IGWardrobeFrame_UpdateButtons()
 end
 
@@ -1289,7 +1279,7 @@ end
 -- Configuration for the slash command dispatcher
 local IGCommandTable = {
 	["inspect"] = function()
-		IGInspect_Show()
+		InspectorGadgetzan.Inspect:Show()
 	end,
 	["mount"] = {
 		["clone"] = function()
