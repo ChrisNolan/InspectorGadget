@@ -213,7 +213,7 @@
 								MicroButton_OnEnter(self);
 							</OnEnter>
 							<OnClick>
-								IGMount_Report(self.mount)
+								InspectorGadgetzan.Mount:Report(self.mount)
 							</OnClick>
 							<OnEnable>
 								self:SetAlpha(1);

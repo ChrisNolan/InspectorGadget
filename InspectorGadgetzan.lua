@@ -647,6 +647,74 @@ transmogCategories[26] = {name = "Guns", slot = "MainHand"};
 transmogCategories[27] = {name = "Crossbows", slot = "MainHand"};
 transmogCategories[28] = {name = "Warglaives", slot = "MainHand"};
 
+--[[
+INVSLOT_HEAD = 1
+INVSLOT_NECK = 2
+INVSLOT_SHOULDER = 3
+INVSLOT_BODY = 4 (shirt)
+INVSLOT_CHEST = 5
+INVSLOT_WAIST = 6
+INVSLOT_LEGS = 7
+INVSLOT_FEET = 8
+INVSLOT_WRIST = 9
+INVSLOT_HAND = 10
+INVSLOT_FINGER1 = 11
+INVSLOT_FINGER2 = 12
+INVSLOT_TRINKET1 = 13
+INVSLOT_TRINKET2 = 14
+INVSLOT_BACK = 15
+INVSLOT_MAINHAND = 16
+INVSLOT_OFFHAND = 17
+INVSLOT_RANGED = 18
+INVSLOT_TABARD = 19
+]]--
+
+local inventorySlotNames = {}
+inventorySlotNames[INVSLOT_HEAD] = "Head"
+inventorySlotNames[INVSLOT_SHOULDER] = "Shoulder"
+inventorySlotNames[INVSLOT_BACK] = "Back"
+inventorySlotNames[INVSLOT_CHEST] = "Chest"
+inventorySlotNames[INVSLOT_BODY] = "Shirt"
+inventorySlotNames[INVSLOT_TABARD] = "Tabard"
+inventorySlotNames[INVSLOT_WRIST] = "Wrist"
+inventorySlotNames[INVSLOT_HAND] = "Hands"
+inventorySlotNames[INVSLOT_WAIST] = "Waist"
+inventorySlotNames[INVSLOT_LEGS] = "Legs"
+inventorySlotNames[INVSLOT_FEET] = "Feet"
+inventorySlotNames[INVSLOT_MAINHAND] = "MainHand"
+inventorySlotNames[INVSLOT_OFFHAND] = "SecondaryHand"
+
+function InspectorGadgetzan:InventorySlotIDByName(slotName)
+	local slotID = nil
+	for k, v in pairs(inventorySlotNames) do
+		if v == slotName then
+			slotID = k
+		end
+	end
+	return slotID
+end
+
+function InspectorGadgetzan:SetWardrobeButtons(itemLink, appearanceLink, categoryID, sourceID)
+	if not(transmogCategories[categoryID]) then return false end -- better way to handle?
+	-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
+	local slot = transmogCategories[categoryID].slot
+	if slot == "MainHand" then
+		-- If it goes in the main hand, but the main hand has something, then they are dual wielding and display it in the offhand.
+		if InspectorGadgetzanWardrobeMainHandSlot.itemLink then
+			slot = "SecondaryHand"
+		end
+	end
+	button = _G["InspectorGadgetzanWardrobe" .. slot .. "Slot"]
+	button.itemLink = itemLink
+	button = _G["InspectorGadgetzanWardrobe" .. slot .. "Text"]
+	button.appearanceLink = appearanceLink
+	button.itemLink = itemLink
+	button.categoryID = categoryID
+	button.sourceID = sourceID
+	button.slotID = self:InventorySlotIDByName(slot)
+	return button
+end
+
 -- Moves the inspect sources into the buttons and text fields 
 --   if debugLevel is set, it'll also dump them to the chat
 local function IGInspectSourcesDump()
@@ -663,111 +731,7 @@ local function IGInspectSourcesDump()
 					addon:Printf(InspectorGadgetzan:ChatFrame(), "%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink)
 					-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
 				end
-				-- TODO this is really ugly... iterate it ... is _G[] what I need?
-				-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
-				if     categoryID == 1 then
-					InspectorGadgetzanWardrobeHeadSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeHeadText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeHeadText.itemLink = itemLink
-					InspectorGadgetzanWardrobeHeadText.categoryID = categoryID
-					InspectorGadgetzanWardrobeHeadText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeHeadText.slotID = INVSLOT_HEAD
-				elseif categoryID == 2 then 
-					InspectorGadgetzanWardrobeShoulderSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeShoulderText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeShoulderText.itemLink = itemLink
-					InspectorGadgetzanWardrobeShoulderText.categoryID = categoryID
-					InspectorGadgetzanWardrobeShoulderText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeShoulderText.slotID = INVSLOT_SHOULDER
-				elseif categoryID == 3 then
-					InspectorGadgetzanWardrobeBackSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeBackText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeBackText.itemLink = itemLink
-					InspectorGadgetzanWardrobeBackText.categoryID = categoryID
-					InspectorGadgetzanWardrobeBackText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeBackText.slotID = INVSLOT_BACK
-				elseif categoryID == 4 then
-					InspectorGadgetzanWardrobeChestSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeChestText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeChestText.itemLink = itemLink
-					InspectorGadgetzanWardrobeChestText.categoryID = categoryID
-					InspectorGadgetzanWardrobeChestText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeChestText.slotID = INVSLOT_CHEST
-				elseif categoryID == 5 then
-					InspectorGadgetzanWardrobeShirtSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeShirtText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeShirtText.itemLink = itemLink
-					InspectorGadgetzanWardrobeShirtText.categoryID = categoryID
-					InspectorGadgetzanWardrobeShirtText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeShirtText.slotID = INVSLOT_BODY
-				elseif categoryID == 6 then
-					InspectorGadgetzanWardrobeTabardSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeTabardText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeTabardText.itemLink = itemLink
-					InspectorGadgetzanWardrobeTabardText.categoryID = categoryID
-					InspectorGadgetzanWardrobeTabardText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeTabardText.slotID = INVSLOT_TABARD
-				elseif categoryID == 7 then
-					InspectorGadgetzanWardrobeWristSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeWristText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeWristText.itemLink = itemLink
-					InspectorGadgetzanWardrobeWristText.categoryID = categoryID
-					InspectorGadgetzanWardrobeWristText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeWristText.slotID = INVSLOT_WRIST
-				elseif categoryID == 8 then
-					InspectorGadgetzanWardrobeHandsSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeHandsText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeHandsText.itemLink = itemLink
-					InspectorGadgetzanWardrobeHandsText.categoryID = categoryID
-					InspectorGadgetzanWardrobeHandsText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeHandsText.slotID = INVSLOT_HAND
-				elseif categoryID == 9 then
-					InspectorGadgetzanWardrobeWaistSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeWaistText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeWaistText.itemLink = itemLink
-					InspectorGadgetzanWardrobeWaistText.categoryID = categoryID
-					InspectorGadgetzanWardrobeWaistText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeWaistText.slotID = INVSLOT_WAIST
-				elseif categoryID ==10 then
-					InspectorGadgetzanWardrobeLegsSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeLegsText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeLegsText.itemLink = itemLink
-					InspectorGadgetzanWardrobeLegsText.categoryID = categoryID
-					InspectorGadgetzanWardrobeLegsText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeLegsText.slotID = INVSLOT_LEGS
-				elseif categoryID ==11 then
-					InspectorGadgetzanWardrobeFeetSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeFeetText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeFeetText.itemLink = itemLink
-					InspectorGadgetzanWardrobeFeetText.categoryID = categoryID
-					InspectorGadgetzanWardrobeFeetText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeFeetText.slotID = INVSLOT_FEET
-				end
-				if (transmogCategories[categoryID] and transmogCategories[categoryID].slot == "MainHand") then
-					-- if it already has something in the mainhand, assume it is a dualwielder
-					if InspectorGadgetzanWardrobeMainHandSlot.itemLink then
-						InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
-						InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
-						InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
-						InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
-						InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
-						InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
-					else
-						InspectorGadgetzanWardrobeMainHandSlot.itemLink = itemLink
-						InspectorGadgetzanWardrobeMainHandText.appearanceLink = appearanceLink
-						InspectorGadgetzanWardrobeMainHandText.itemLink = itemLink
-						InspectorGadgetzanWardrobeMainHandText.categoryID = categoryID
-						InspectorGadgetzanWardrobeMainHandText.sourceID = appearanceSources[i]
-						InspectorGadgetzanWardrobeMainHandText.slotID = INVSLOT_MAINHAND
-					end
-				elseif transmogCategories[categoryID] and transmogCategories[categoryID].slot == "SecondaryHand" then
-					InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
-					InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
-					InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
-				end
+				InspectorGadgetzan:SetWardrobeButtons(itemLink, appearanceLink, categoryID, appearanceSources[i])
 			end
 		end
 	else
@@ -800,44 +764,6 @@ function IGWardrobeViewButton_OnEnter(self)
 	GameTooltip:Show()
 	CursorUpdate(self)
 end
-
---[[
-INVSLOT_HEAD = 1
-INVSLOT_NECK = 2
-INVSLOT_SHOULDER = 3
-INVSLOT_BODY = 4 (shirt)
-INVSLOT_CHEST = 5
-INVSLOT_WAIST = 6
-INVSLOT_LEGS = 7
-INVSLOT_FEET = 8
-INVSLOT_WRIST = 9
-INVSLOT_HAND = 10
-INVSLOT_FINGER1 = 11
-INVSLOT_FINGER2 = 12
-INVSLOT_TRINKET1 = 13
-INVSLOT_TRINKET2 = 14
-INVSLOT_BACK = 15
-INVSLOT_MAINHAND = 16
-INVSLOT_OFFHAND = 17
-INVSLOT_RANGED = 18
-INVSLOT_TABARD = 19
-]]--
-
-local inventorySlotNames = {
-	"Head",
-	"Shoulder",
-	"Back",
-	"Chest",
-	"Shirt",
-	"Tabard",
-	"Wrist",
-	"Hands",
-	"Waist",
-	"Legs",
-	"Feet",
-	"MainHand",
-	"SecondaryHand",
-}
 
 
 --[[
