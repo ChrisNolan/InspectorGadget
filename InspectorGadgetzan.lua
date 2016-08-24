@@ -255,7 +255,7 @@ addon.LDBstub = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
 			if IsAltKeyDown() then
 				InspectorGadgetzan:OpenConfig()
 			else
-				InspectorGadgetzan.Inspect:Show()
+				InspectorGadgetzan.Wardrobe:Inspect()
 			end
 		elseif button=="RightButton" then
 			if IsShiftKeyDown() then
@@ -591,15 +591,15 @@ function IGNewMountLearnedAlertFrame_OnClick(self, button, down)
 end
 
 --------------------------------------------------
--- Inspect
+-- Wardrobe
 -- 
 
-if not(InspectorGadgetzan.Inspect) then
-	InspectorGadgetzan.Inspect = { parent = InspectorGadgetzan }
+if not(InspectorGadgetzan.Wardrobe) then
+	InspectorGadgetzan.Wardrobe = { parent = InspectorGadgetzan }
 end
 
 
-function InspectorGadgetzan.Inspect:Show()
+function InspectorGadgetzan.Wardrobe:Inspect()
 	if (UnitPlayerControlled("target") and CheckInteractDistance("target", 1) and not UnitIsUnit("player", "target")) then
 		InspectorGadgetzanWardrobeFrame:RegisterEvent("INSPECT_READY")
 		InspectUnit("target")
@@ -675,7 +675,7 @@ inventorySlotNames[INVSLOT_FEET] = "Feet"
 inventorySlotNames[INVSLOT_MAINHAND] = "MainHand"
 inventorySlotNames[INVSLOT_OFFHAND] = "SecondaryHand"
 
-function InspectorGadgetzan.Inspect:InventorySlotIDByName(slotName)
+function InspectorGadgetzan.Wardrobe:InventorySlotIDByName(slotName)
 	local slotID = nil
 	for k, v in pairs(inventorySlotNames) do
 		if v == slotName then
@@ -695,7 +695,7 @@ function InspectorGadgetzan:WardrobeButtons(buttonGroup)
 	return buttons
 end
 
-function InspectorGadgetzan.Inspect:SetWardrobeButtons(itemLink, appearanceLink, categoryID, sourceID)
+function InspectorGadgetzan.Wardrobe:SetWardrobeButtons(itemLink, appearanceLink, categoryID, sourceID)
 	if not(transmogCategories[categoryID]) then return false end -- better way to handle?
 	-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
 	local slot = transmogCategories[categoryID].slot
@@ -718,7 +718,7 @@ end
 
 -- Moves the inspect sources into the buttons and text fields 
 --   if debugLevel is set, it'll also dump them to the chat
-function InspectorGadgetzan.Inspect:ProcessSources()
+function InspectorGadgetzan.Wardrobe:ProcessSources()
 
 	local appearanceSources = C_TransmogCollection.GetInspectSources()
 
@@ -766,7 +766,7 @@ local NOTKNOWN_YES =3  -- Orange & Enabled
 local NOTKNOWN_NO = 4  -- Yellow & Disabled
 local CANTKNOW =	5
 
-function InspectorGadgetzan.Inspect:ItemTransmogStatus(itemLink)
+function InspectorGadgetzan.Wardrobe:ItemTransmogStatus(itemLink)
 	local itemID = GetItemInfoInstant(itemLink)
 	if itemID == 134110 or itemID == 134111 or itemID == 134112 then return KNOWN_YES end -- Hack for the 'Hidden Helm/Cloak/Shoulders'
 	if CanIMogIt then
@@ -887,12 +887,12 @@ end
 
 function IGWardrobeViewButton_OnClick(self)
 	PlaySound("igMainMenuOptionCheckBoxOn");
-	MyDressUpSources(InspectorGadgetzan.Inspect:AppearanceSources(UIDropDownMenu_GetSelectedValue(DropDownMenuTryOn)));
+	MyDressUpSources(InspectorGadgetzan.Wardrobe:AppearanceSources(UIDropDownMenu_GetSelectedValue(DropDownMenuTryOn)));
 end
 
-function InspectorGadgetzan.Inspect:AppearanceSourcesCheck(flag, button)
+function InspectorGadgetzan.Wardrobe:AppearanceSourcesCheck(flag, button)
 	if flag == APPEARANCE_SOURCES_ALL then return true end
-	local itemTransmogStatus = InspectorGadgetzan.Inspect:ItemTransmogStatus(button.itemLink)
+	local itemTransmogStatus = InspectorGadgetzan.Wardrobe:ItemTransmogStatus(button.itemLink)
 	if flag == APPEARANCE_SOURCES_SELECTED then
 		if itemTransmogStatus == KNOWN_YES or itemTransmogStatus == NOTKNOWN_YES then
 			return true
@@ -906,7 +906,7 @@ function InspectorGadgetzan.Inspect:AppearanceSourcesCheck(flag, button)
 	end
 end
 
-function InspectorGadgetzan.Inspect:AppearanceSources(flag)
+function InspectorGadgetzan.Wardrobe:AppearanceSources(flag)
 	if not(flag) then flag = APPEARANCE_SOURCES_ALL end
 	-- array of appearanceSources is:
 	--   1 - subarray of
@@ -1048,7 +1048,7 @@ end
 -- Opposite of UpdateButtons
 local function IGWardrobeFrame_ClearButtons()
 	for categoryID, v in pairs(transmogCategories) do
-		InspectorGadgetzan.Inspect:SetWardrobeButtons(nil, nil, categoryID, nil)
+		InspectorGadgetzan.Wardrobe:SetWardrobeButtons(nil, nil, categoryID, nil)
 	end
 end
 
@@ -1081,7 +1081,7 @@ end
 -- Change the ItemText to match the links attached to it
 function IGWardrobeItemTextButton_Update(button)
 	if button.appearanceLink then
-		local itemTransmogStatus = InspectorGadgetzan.Inspect:ItemTransmogStatus(button.itemLink)
+		local itemTransmogStatus = InspectorGadgetzan.Wardrobe:ItemTransmogStatus(button.itemLink)
 		local color = itemTransmogStatues[itemTransmogStatus].color
 		local enabled = itemTransmogStatues[itemTransmogStatus].enabled
 		button:SetText(color .. button.appearanceLink:match("%[.*%]"):gsub("%[", ""):gsub("%]",""))
@@ -1105,7 +1105,7 @@ function IGWardrobe_OnLoad()
 		CollectionsJournal_LoadUI();
 	end
 	IGWardrobeFrame_ClearButtons()
-	InspectorGadgetzan.Inspect:ProcessSources()
+	InspectorGadgetzan.Wardrobe:ProcessSources()
 	IGWardrobeFrame_UpdateButtons()
 end
 
@@ -1279,7 +1279,7 @@ end
 -- Configuration for the slash command dispatcher
 local IGCommandTable = {
 	["inspect"] = function()
-		InspectorGadgetzan.Inspect:Show()
+		InspectorGadgetzan.Wardrobe:Inspect()
 	end,
 	["mount"] = {
 		["clone"] = function()
