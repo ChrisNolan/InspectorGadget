@@ -48,6 +48,8 @@ The addon [CanIMogIt](https://mods.curse.com/addons/wow/can-i-mog-it) is a great
 ### Known Issues
 
 * no localization yet
+* ElvUI notifications seem to go off the top of the screen, rather than going down.
+* CanIMogIt update has broken some of the 'try on' functionality... need to sort through the different response codes/messages again
 
 A gadget to improve access to information about players you encounter in World of Warcraft; such as what they are wearing, or which mount they are on written by Hiketeia of Emerald Dream-US.
 

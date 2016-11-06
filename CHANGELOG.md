@@ -1,3 +1,7 @@
+## v7.1.0.1
+
+Updated for 7.1
+
 ## v7.0.3.8
 
 ### Options
