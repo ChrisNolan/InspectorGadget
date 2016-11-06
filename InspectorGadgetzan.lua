@@ -1218,6 +1218,8 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		local bonus_msg, bonus_share_msg, share_msg = "", "", ""
 		local collectedNames = {}
 		local unCollectedNames = {}
+		local unCollectedSourceID
+		local tempName
 		if #sources > 1 then
 			for k, source in pairs(sources) do
 				-- source.{sourceType, name, isCollected, sourceID, quality}
@@ -1225,7 +1227,13 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 					if not sourceID then sourceID = source.sourceID end
 					tinsert(collectedNames, source.name)
 				else
-					tinsert(unCollectedNames, source.name)
+					local itemLink = select(6, C_TransmogCollection.GetAppearanceSourceInfo(source.sourceID))
+					if itemLink then
+						tempName = itemLink
+					else
+						tempName = source.name
+					end
+					tinsert(unCollectedNames, tempName)
 				end
 			end
 		else
@@ -1259,7 +1267,12 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 			self:SendCommMessage("NewAppearance", share_msg, groupFallthrough)
 		end
 		if #unCollectedNames > 0 and self.db.profile.announcements.chatlog then
-			self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
+			if #unCollectedNames == 1 then
+				-- local itemLink = select(6, C_TransmogCollection.GetAppearanceSourceInfo(unCollectedSourceID))
+				self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "Only one more item shares that appearance: %s", tbl2str(unCollectedNames))
+			else
+				self:Printcf(self:ChatFrame(), CHAT_COLOR["SYSTEM"].intensity, "%s sources of that appearance still available: %s", tostring(#unCollectedNames), tbl2str(unCollectedNames))
+			end
 		end
 		self.latestAppearanceLink = appearanceLink
 	elseif latestAppearanceID == nil then
