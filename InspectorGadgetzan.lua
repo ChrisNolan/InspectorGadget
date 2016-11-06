@@ -235,7 +235,7 @@ local defaults = {
 		misc = {
 			pickupMount = false,
 		},
-		chatframeName = addonTitle,
+		chatframeName = 'Inspector Gadgetzan', -- hack for now to make a custom chatframe
 	}
 }
 local optionsTable = LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, options, nil)
@@ -255,13 +255,13 @@ addon.LDBstub = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
 			if IsAltKeyDown() then
 				InspectorGadgetzan:OpenConfig()
 			else
-				IGInspect_Show()
+				InspectorGadgetzan.Wardrobe:Inspect()
 			end
 		elseif button=="RightButton" then
 			if IsShiftKeyDown() then
-				IGMount_Clone()
+				InspectorGadgetzan.Mount:Clone()
 			else
-				IGMount_Report()
+				InspectorGadgetzan.Mount:Report()
 			end			
 		end
 	end,
@@ -391,11 +391,11 @@ function InspectorGadgetzan:CanIMogItGetTooltipText(itemLink)
 end
 ]]--
 
---[[ IGNewAppearanceLearnedAlertFrame / taken from AlertFrameSystems / NewRecipeLearned as a model 
+--[[ 
+------------------------------------------------------------
+Alert Frame Code.
 
-	elseif ( event == "NEW_RECIPE_LEARNED" ) then
-		NewRecipeLearnedAlertSystem:AddAlert(...);
-
+  taken from AlertFrameSystems / NewRecipeLearned as a model 
 
 ]]--
 
@@ -501,8 +501,18 @@ function InspectorGadgetzan_OnLoad(self)
 
 end
 
+--[[
+------------------------------
+Mount Related Functions
+
+]]--
+
+if not(InspectorGadgetzan.Mount) then
+	InspectorGadgetzan.Mount = { parent = InspectorGadgetzan }
+end
+
 -- show the mount journal
-local function IGMount_Show(mount)
+function InspectorGadgetzan.Mount:Show(mount)
 	if mount.index then
 		if (not CollectionsJournal) then
 			CollectionsJournal_LoadUI();
@@ -516,7 +526,7 @@ local function IGMount_Show(mount)
 	else
 		-- some mounts we can't see in the Mount Journal so we will give a little popup instead
 		local creatureDisplayID, descriptionText, sourceText, isSelfMount, mountType = C_MountJournal.GetMountInfoExtraByID(mount.mountID)
-		addon:Print(sourceText)
+		self.parent:Print(sourceText)
 		local details = (descriptionText or "") .. "\n\n" .. (sourceText or "")
 		--details = format("%s\n\nhttp://wowhead.com/spell=%s", details, mount.spellID)
 		StaticPopup_Show ("IGMount_Show", mount.creatureName, details)
@@ -525,39 +535,35 @@ end
 
 
 -- return a table of info about the mount the unit is on
-function IGMount(unit)
+function InspectorGadgetzan.Mount:UnitMount(unit)
 	local i = 1; --    Initialize at index 1
-	if not unit then
-		unit = "playertarget"
-	end
+	if not(unit) then unit = "playertarget" end
 	-- code originally from SDPhantom @ http://www.wowinterface.com/forums/showpost.php?p=314055&postcount=2
 	while true do-- Infinite loop, we'll break manually
 		local _,_,_,_,_,_,_,_,_,_,spellid=UnitBuff(unit,i);--   Grab buff info
 		if spellid then--   If we have a buff, we have a spell ID
-			if MountCache[spellid] then return MountCache[spellid]; end--   Return SpellID if mount is found
+			if MountCache[spellid] then
+				self.mount = MountCache[spellid]
+				return MountCache[spellid] --   Return mount table if mount is found
+			end
 			i=i+1;--    Increment by 1 and try again
 		else break; end--   Else break loop if no more buffs
 	end
 end
 
-function IGMountDebug()
-	buildMountCache()
-	return MountCache
-end
-
 -- What mount is that person on?  Pop mount journal, and also give you the icon if you have it to place on your bar
-function IGMount_Report(mount)
+function InspectorGadgetzan.Mount:Report(mount)
 	if mount == nil then
-		mount = IGMount("playertarget")
+		mount = self:UnitMount("playertarget")
 	end
 	if mount then
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
-		if InspectorGadgetzan.db.profile.misc.pickupMount then
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		if self.parent.db.profile.misc.pickupMount then
 			C_MountJournal.Pickup(mount.index)
 		end
-		IGMount_Show(mount)
+		self:Show(mount)
 	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted")
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted")
 	end
 end
 
@@ -565,48 +571,40 @@ end
 -- TODO Future feature: register the player in question, and if they change their mount, you change yours too (if it is safe to do so etc.)
 --      More for when you're waiting around for a pull, or sitting in the capital city etc and people are messing around with their collections
 --      Maybe call it 'mirror' instead of 'clone'?
-function IGMount_Clone()
-	local mount = IGMount("playertarget")
+function InspectorGadgetzan.Mount:Clone()
+	local mount = self:UnitMount("playertarget")
 	if mount then
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Mount cloning: \124cffffd000\124Hspell:".. mount.spellID .. "\124h[" .. mount.creatureName .. "]\124h\124r");
 		C_MountJournal.SummonByID(mount.mountID)
 	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted - Unable to clone.")
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Mount reports: Not mounted - Unable to clone.")
 	end
 end
 
+-- TODO can this function be moved up now that the function is defined differently?  Test before committing
 function IGNewMountLearnedAlertFrame_OnClick(self, button, down)
 	if AlertFrame_OnClick(self, button, down) then
 		return;
 	end
 
-	IGMount_Show(self.mount)
+	InspectorGadgetzan.Mount:Show(self.mount)
 end
 
--- # Inspect
+--------------------------------------------------
+-- Wardrobe
 -- 
--- http://wowprogramming.com/docs/api_categories#inspect
--- http://wow.gamepedia.com/API_CheckInteractDistance
--- http://wow.gamepedia.com/API_NotifyInspect
--- http://wow.gamepedia.com/API_InspectUnit
--- Code to monitor your own item level and notify you of a change http://www.wowinterface.com/forums/showpost.php?p=308065&postcount=7
--- Code to add an item level to the player tooltip: http://www.wowinterface.com/forums/showpost.php?p=304938&postcount=2
--- Internally, this is the code used on the default inspect screen for your own character to show your ilvl https://www.townlong-yak.com/framexml/19831/PaperDollFrame.lua#1458
--- Use Addon Messages to respond with the info rather than via inspect?  i.e. for iLvl if party members are using the addon too, get it from them?  Could we do account-wide stuff too?  i.e sure this shaman is only 701, but they have two toons which are 725 so cut them some slack?
--- Interface/AddOns/Blizzard_InspectUI
--- http://wow.gamepedia.com/API_GetItemTransmogrifyInfo
--- Couple other inspect addons to review: http://mods.curse.com/addons/wow/examiner, http://mods.curse.com/addons/wow/inspect-equip
--- 7.0 changed a bunch.... current research:
---    InspectPaperDoll - InspectpaperDollViewButton_OnClick() calling C_TransmogCollection.GetInspectSources()
---    FrameXML/DressUpFrames.lua / DressUpFrame_Show() + DressUpSources()
+
+if not(InspectorGadgetzan.Wardrobe) then
+	InspectorGadgetzan.Wardrobe = { parent = InspectorGadgetzan }
+end
 
 
-function IGInspect_Show()
+function InspectorGadgetzan.Wardrobe:Inspect()
 	if (UnitPlayerControlled("target") and CheckInteractDistance("target", 1) and not UnitIsUnit("player", "target")) then
 		InspectorGadgetzanWardrobeFrame:RegisterEvent("INSPECT_READY")
 		InspectUnit("target")
 	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.") -- TODO make this red for an error
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "Invalid target/Target not found.") -- TODO make this red for an error
 	end
 end
 
@@ -640,160 +638,6 @@ transmogCategories[26] = {name = "Guns", slot = "MainHand"};
 transmogCategories[27] = {name = "Crossbows", slot = "MainHand"};
 transmogCategories[28] = {name = "Warglaives", slot = "MainHand"};
 
--- Moves the inspect sources into the buttons and text fields 
---   if debugLevel is set, it'll also dump them to the chat
-local function IGInspectSourcesDump()
-
-	local appearanceSources = C_TransmogCollection.GetInspectSources()
-
-	if appearanceSources then
-		if debugLevel then addon:Print(InspectorGadgetzan:ChatFrame(), "Appearances Dump") end
-		for i = 1, #appearanceSources do
-			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
-				-- TODO should I local these?
-				categoryID , appearanceID, unknownBoolean1, itemTexture, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
-				if debugLevel then
-					addon:Printf(InspectorGadgetzan:ChatFrame(), "%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink)
-					-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
-				end
-				-- TODO this is really ugly... iterate it ... is _G[] what I need?
-				-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
-				if     categoryID == 1 then
-					InspectorGadgetzanWardrobeHeadSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeHeadText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeHeadText.itemLink = itemLink
-					InspectorGadgetzanWardrobeHeadText.categoryID = categoryID
-					InspectorGadgetzanWardrobeHeadText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeHeadText.slotID = INVSLOT_HEAD
-				elseif categoryID == 2 then 
-					InspectorGadgetzanWardrobeShoulderSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeShoulderText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeShoulderText.itemLink = itemLink
-					InspectorGadgetzanWardrobeShoulderText.categoryID = categoryID
-					InspectorGadgetzanWardrobeShoulderText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeShoulderText.slotID = INVSLOT_SHOULDER
-				elseif categoryID == 3 then
-					InspectorGadgetzanWardrobeBackSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeBackText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeBackText.itemLink = itemLink
-					InspectorGadgetzanWardrobeBackText.categoryID = categoryID
-					InspectorGadgetzanWardrobeBackText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeBackText.slotID = INVSLOT_BACK
-				elseif categoryID == 4 then
-					InspectorGadgetzanWardrobeChestSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeChestText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeChestText.itemLink = itemLink
-					InspectorGadgetzanWardrobeChestText.categoryID = categoryID
-					InspectorGadgetzanWardrobeChestText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeChestText.slotID = INVSLOT_CHEST
-				elseif categoryID == 5 then
-					InspectorGadgetzanWardrobeShirtSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeShirtText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeShirtText.itemLink = itemLink
-					InspectorGadgetzanWardrobeShirtText.categoryID = categoryID
-					InspectorGadgetzanWardrobeShirtText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeShirtText.slotID = INVSLOT_BODY
-				elseif categoryID == 6 then
-					InspectorGadgetzanWardrobeTabardSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeTabardText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeTabardText.itemLink = itemLink
-					InspectorGadgetzanWardrobeTabardText.categoryID = categoryID
-					InspectorGadgetzanWardrobeTabardText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeTabardText.slotID = INVSLOT_TABARD
-				elseif categoryID == 7 then
-					InspectorGadgetzanWardrobeWristSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeWristText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeWristText.itemLink = itemLink
-					InspectorGadgetzanWardrobeWristText.categoryID = categoryID
-					InspectorGadgetzanWardrobeWristText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeWristText.slotID = INVSLOT_WRIST
-				elseif categoryID == 8 then
-					InspectorGadgetzanWardrobeHandsSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeHandsText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeHandsText.itemLink = itemLink
-					InspectorGadgetzanWardrobeHandsText.categoryID = categoryID
-					InspectorGadgetzanWardrobeHandsText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeHandsText.slotID = INVSLOT_HAND
-				elseif categoryID == 9 then
-					InspectorGadgetzanWardrobeWaistSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeWaistText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeWaistText.itemLink = itemLink
-					InspectorGadgetzanWardrobeWaistText.categoryID = categoryID
-					InspectorGadgetzanWardrobeWaistText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeWaistText.slotID = INVSLOT_WAIST
-				elseif categoryID ==10 then
-					InspectorGadgetzanWardrobeLegsSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeLegsText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeLegsText.itemLink = itemLink
-					InspectorGadgetzanWardrobeLegsText.categoryID = categoryID
-					InspectorGadgetzanWardrobeLegsText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeLegsText.slotID = INVSLOT_LEGS
-				elseif categoryID ==11 then
-					InspectorGadgetzanWardrobeFeetSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeFeetText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeFeetText.itemLink = itemLink
-					InspectorGadgetzanWardrobeFeetText.categoryID = categoryID
-					InspectorGadgetzanWardrobeFeetText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeFeetText.slotID = INVSLOT_FEET
-				end
-				if (transmogCategories[categoryID] and transmogCategories[categoryID].slot == "MainHand") then
-					-- if it already has something in the mainhand, assume it is a dualwielder
-					if InspectorGadgetzanWardrobeMainHandSlot.itemLink then
-						InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
-						InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
-						InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
-						InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
-						InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
-						InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
-					else
-						InspectorGadgetzanWardrobeMainHandSlot.itemLink = itemLink
-						InspectorGadgetzanWardrobeMainHandText.appearanceLink = appearanceLink
-						InspectorGadgetzanWardrobeMainHandText.itemLink = itemLink
-						InspectorGadgetzanWardrobeMainHandText.categoryID = categoryID
-						InspectorGadgetzanWardrobeMainHandText.sourceID = appearanceSources[i]
-						InspectorGadgetzanWardrobeMainHandText.slotID = INVSLOT_MAINHAND
-					end
-				elseif transmogCategories[categoryID] and transmogCategories[categoryID].slot == "SecondaryHand" then
-					InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = itemLink
-					InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
-					InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
-					InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
-					InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
-					InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
-				end
-			end
-		end
-	else
-		addon:Print(InspectorGadgetzan:ChatFrame(), "not ready")
-	end
-end
-
-function IGWardrobeViewButton_OnLoad(self)
-	self:SetWidth(30 + self:GetFontString():GetStringWidth());
-end
-
--- Deals with Tooltips when you mouse over
-function IGWardrobeViewButton_OnEnter(self)
-	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-	GameTooltip:AddLine("Try on in the Dressing Room")
-	if not(CanIMogIt) then
-		GameTooltip:AddLine("Seeing all "..RED_DULL.."RED|r?", 1.0,1.0,1.0)
-		GameTooltip:AddLine("Please install/enable "..YELLOW.."CanIMogIt|r Addon to enable these features fully", 1.0,1.0,1.0)
-	else
-		GameTooltip:AddLine("* 'All' will try on all appearances", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("* 'Wearable' will only try on the "..BLUE.."blue|r and "..BLUE_GREEN.."green|r highlighted items.", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("These are the ones which work for your class.", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("* 'In Collection' will try on the "..BLUE.."blue|r appearances, regardless of class,", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine("which works well imagining what it'll look like on an alt.", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine(" ")
-		GameTooltip:AddLine("The "..RED_DULL.."red|r items are not known to you, and aren't learnable by this character.", 1.0, 1.0, 1.0)
-		GameTooltip:AddLine(" ")
-		GameTooltip:AddLine("If I need such a long tooltip, I need to re-think the UI, eh?")
-	end
-	GameTooltip:Show()
-	CursorUpdate(self)
-end
-
 --[[
 INVSLOT_HEAD = 1
 INVSLOT_NECK = 2
@@ -816,21 +660,84 @@ INVSLOT_RANGED = 18
 INVSLOT_TABARD = 19
 ]]--
 
-local inventorySlotNames = {
-	"Head",
-	"Shoulder",
-	"Back",
-	"Chest",
-	"Shirt",
-	"Tabard",
-	"Wrist",
-	"Hands",
-	"Waist",
-	"Legs",
-	"Feet",
-	"MainHand",
-	"SecondaryHand",
-}
+local inventorySlotNames = {}
+inventorySlotNames[INVSLOT_HEAD] = "Head"
+inventorySlotNames[INVSLOT_SHOULDER] = "Shoulder"
+inventorySlotNames[INVSLOT_BACK] = "Back"
+inventorySlotNames[INVSLOT_CHEST] = "Chest"
+inventorySlotNames[INVSLOT_BODY] = "Shirt"
+inventorySlotNames[INVSLOT_TABARD] = "Tabard"
+inventorySlotNames[INVSLOT_WRIST] = "Wrist"
+inventorySlotNames[INVSLOT_HAND] = "Hands"
+inventorySlotNames[INVSLOT_WAIST] = "Waist"
+inventorySlotNames[INVSLOT_LEGS] = "Legs"
+inventorySlotNames[INVSLOT_FEET] = "Feet"
+inventorySlotNames[INVSLOT_MAINHAND] = "MainHand"
+inventorySlotNames[INVSLOT_OFFHAND] = "SecondaryHand"
+
+function InspectorGadgetzan.Wardrobe:InventorySlotIDByName(slotName)
+	local slotID = nil
+	for k, v in pairs(inventorySlotNames) do
+		if v == slotName then
+			slotID = k
+		end
+	end
+	return slotID
+end
+
+-- return a list of the buttons used in the GUI
+function InspectorGadgetzan:WardrobeButtons(buttonGroup)
+	-- valid buttonGroups atm "Slot"/"Text" from the .xml
+	local buttons = {}
+	for k, v in pairs(inventorySlotNames) do
+		buttons[k] = _G["InspectorGadgetzanWardrobe" .. v .. buttonGroup]
+	end
+	return buttons
+end
+
+function InspectorGadgetzan.Wardrobe:SetWardrobeButtons(itemLink, appearanceLink, categoryID, sourceID)
+	if not(transmogCategories[categoryID]) then return false end -- better way to handle?
+	-- local slot = WardrobeCollectionFrame_GetSlotFromCategoryID(categoryID); -- HMPF, this is nil sometimes... guess I won't use it.  hardcode my transmogCategories table for now
+	local slot = transmogCategories[categoryID].slot
+	if slot == "MainHand" then
+		-- If it goes in the main hand, but the main hand has something, then they are dual wielding and display it in the offhand.
+		if itemLink and InspectorGadgetzanWardrobeMainHandSlot.itemLink then
+			slot = "SecondaryHand"
+		end
+	end
+	button = _G["InspectorGadgetzanWardrobe" .. slot .. "Slot"]
+	button.itemLink = itemLink
+	button = _G["InspectorGadgetzanWardrobe" .. slot .. "Text"]
+	button.appearanceLink = appearanceLink
+	button.itemLink = itemLink
+	button.categoryID = categoryID
+	button.sourceID = sourceID
+	button.slotID = self:InventorySlotIDByName(slot)
+	return button
+end
+
+-- Moves the inspect sources into the buttons and text fields 
+--   if debugLevel is set, it'll also dump them to the chat
+function InspectorGadgetzan.Wardrobe:ProcessSources()
+
+	local appearanceSources = C_TransmogCollection.GetInspectSources()
+
+	if appearanceSources then
+		if debugLevel then self.parent:Print(InspectorGadgetzan:ChatFrame(), "Appearances Dump") end
+		for i = 1, #appearanceSources do
+			if ( appearanceSources[i] and appearanceSources[i] ~= NO_TRANSMOG_SOURCE_ID ) then
+				local categoryID , appearanceID, unknownBoolean1, itemTexture, unknownBoolean2, itemLink, appearanceLink, unknownFlag = C_TransmogCollection.GetAppearanceSourceInfo(appearanceSources[i])
+				if debugLevel then
+					self.parent:Printf(InspectorGadgetzan:ChatFrame(), "%s is item %s (appearance %s)", transmogCategories[categoryID].name, itemLink, appearanceLink)
+					-- print (format("unknownBoolean1 %s, uiOrder %s, unknownBoolean2 %s, unknownFlag %s", tostring(unknownBoolean1), tostring(uiOrder), tostring(unknownBoolean2), tostring(unknownFlag))) -- TODO figure out those other fields
+				end
+				self:SetWardrobeButtons(itemLink, appearanceLink, categoryID, appearanceSources[i])
+			end
+		end
+	else
+		self.parent:Print(InspectorGadgetzan:ChatFrame(), "not ready")
+	end
+end
 
 
 --[[
@@ -859,7 +766,7 @@ local NOTKNOWN_YES =3  -- Orange & Enabled
 local NOTKNOWN_NO = 4  -- Yellow & Disabled
 local CANTKNOW =	5
 
-function InspectorGadgetzan:ItemTransmogStatus(itemLink)
+function InspectorGadgetzan.Wardrobe:ItemTransmogStatus(itemLink)
 	local itemID = GetItemInfoInstant(itemLink)
 	if itemID == 134110 or itemID == 134111 or itemID == 134112 then return KNOWN_YES end -- Hack for the 'Hidden Helm/Cloak/Shoulders'
 	if CanIMogIt then
@@ -945,20 +852,47 @@ local function MyDressUpSources(appearanceSources, mainHandEnchant, offHandEncha
 			end
 		--end
 	end
+	-- TODO test why dual weilder's don't seem to dressup the offhand
 
 	--print("Trying on weapons now")
 	--DressUpModel:TryOn(appearanceSources[mainHandSlotID], "MAINHANDSLOT", mainHandEnchant);
 	--DressUpModel:TryOn(appearanceSources[secondaryHandSlotID], "SECONDARYHANDSLOT", offHandEnchant);
 end
 
-function IGWardrobeViewButton_OnClick(self)
-	PlaySound("igMainMenuOptionCheckBoxOn");
-	MyDressUpSources(InspectorGadgetzanAppearanceSources(UIDropDownMenu_GetSelectedValue(DropDownMenuTryOn)));
+function IGWardrobeViewButton_OnLoad(self)
+	self:SetWidth(30 + self:GetFontString():GetStringWidth());
 end
 
-function InspectorGadgetzanAppearanceSourcesCheck(flag, button)
+-- Deals with Tooltips when you mouse over
+function IGWardrobeViewButton_OnEnter(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:AddLine("Try on in the Dressing Room")
+	if not(CanIMogIt) then
+		GameTooltip:AddLine("Seeing all "..RED_DULL.."RED|r?", 1.0,1.0,1.0)
+		GameTooltip:AddLine("Please install/enable "..YELLOW.."CanIMogIt|r Addon to enable these features fully", 1.0,1.0,1.0)
+	else
+		GameTooltip:AddLine("* 'All' will try on all appearances", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'Wearable' will only try on the "..BLUE.."blue|r and "..BLUE_GREEN.."green|r highlighted items.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("These are the ones which work for your class.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("* 'In Collection' will try on the "..BLUE.."blue|r appearances, regardless of class,", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine("which works well imagining what it'll look like on an alt.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("The "..RED_DULL.."red|r items are not known to you, and aren't learnable by this character.", 1.0, 1.0, 1.0)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("If I need such a long tooltip, I need to re-think the UI, eh?")
+	end
+	GameTooltip:Show()
+	CursorUpdate(self)
+end
+
+function IGWardrobeViewButton_OnClick(self)
+	PlaySound("igMainMenuOptionCheckBoxOn");
+	MyDressUpSources(InspectorGadgetzan.Wardrobe:AppearanceSources(UIDropDownMenu_GetSelectedValue(DropDownMenuTryOn)));
+end
+
+function InspectorGadgetzan.Wardrobe:AppearanceSourcesCheck(flag, button)
 	if flag == APPEARANCE_SOURCES_ALL then return true end
-	local itemTransmogStatus = InspectorGadgetzan:ItemTransmogStatus(button.itemLink)
+	local itemTransmogStatus = InspectorGadgetzan.Wardrobe:ItemTransmogStatus(button.itemLink)
 	if flag == APPEARANCE_SOURCES_SELECTED then
 		if itemTransmogStatus == KNOWN_YES or itemTransmogStatus == NOTKNOWN_YES then
 			return true
@@ -972,7 +906,7 @@ function InspectorGadgetzanAppearanceSourcesCheck(flag, button)
 	end
 end
 
-function InspectorGadgetzanAppearanceSources(flag)
+function InspectorGadgetzan.Wardrobe:AppearanceSources(flag)
 	if not(flag) then flag = APPEARANCE_SOURCES_ALL end
 	-- array of appearanceSources is:
 	--   1 - subarray of
@@ -982,7 +916,7 @@ function InspectorGadgetzanAppearanceSources(flag)
 	local appearanceSources = {}
 	for k, v in pairs(inventorySlotNames) do
 		button = _G["InspectorGadgetzanWardrobe" .. v .. "Text"]
-		if button.appearanceLink and button.slotID and InspectorGadgetzanAppearanceSourcesCheck(flag, button) then
+		if button.appearanceLink and button.slotID and self:AppearanceSourcesCheck(flag, button) then
 			appearanceSources[button.slotID] = button.sourceID
 		end
 	end
@@ -1081,37 +1015,16 @@ function IGWardrobeItemTextButton_OnClick(self)
 end
 
 local function IGWardrobeFrame_UpdateButtons()
-	-- don't like code like this... snazzy it up some day
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeHeadSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeShoulderSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeBackSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeChestSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeShirtSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeTabardSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeWristSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeHandsSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeWaistSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeLegsSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeFeetSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeMainHandSlot);
-	IGWardrobeItemSlotButton_Update(InspectorGadgetzanWardrobeSecondaryHandSlot);
+	for k, button in pairs(InspectorGadgetzan:WardrobeButtons("Slot")) do
+		IGWardrobeItemSlotButton_Update(button)
+	end
 	
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeHeadText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeShoulderText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeBackText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeChestText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeShirtText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeTabardText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeWristText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeHandsText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeWaistText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeLegsText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeFeetText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeMainHandText);
-	IGWardrobeItemTextButton_Update(InspectorGadgetzanWardrobeSecondaryHandText);
+	for k, button in pairs(InspectorGadgetzan:WardrobeButtons("Text")) do
+		IGWardrobeItemTextButton_Update(button)
+	end
 	
 	-- Set the mount header info
-	local mount = IGMount(InspectFrame.unit)
+	local mount = InspectorGadgetzan.Mount:UnitMount(InspectFrame.unit)
 	if mount then
 		local button = InspectorGadgetzanWardrobeMountMicroButton
 		local prefix = "Interface\\Buttons\\UI-MicroButton-";
@@ -1134,43 +1047,9 @@ end
 
 -- Opposite of UpdateButtons
 local function IGWardrobeFrame_ClearButtons()
-	-- don't like code like this... snazzy it up some day
-	InspectorGadgetzanWardrobeHeadSlot.itemLink = nil
-	InspectorGadgetzanWardrobeShoulderSlot.itemLink = nil
-	InspectorGadgetzanWardrobeBackSlot.itemLink = nil
-	InspectorGadgetzanWardrobeChestSlot.itemLink = nil
-	InspectorGadgetzanWardrobeShirtSlot.itemLink = nil
-	InspectorGadgetzanWardrobeTabardSlot.itemLink = nil
-	InspectorGadgetzanWardrobeWristSlot.itemLink = nil
-	InspectorGadgetzanWardrobeHandsSlot.itemLink = nil
-	InspectorGadgetzanWardrobeWaistSlot.itemLink = nil
-	InspectorGadgetzanWardrobeLegsSlot.itemLink = nil
-	InspectorGadgetzanWardrobeFeetSlot.itemLink = nil
-	InspectorGadgetzanWardrobeMainHandSlot.itemLink = nil
-	InspectorGadgetzanWardrobeSecondaryHandSlot.itemLink = nil
-
-	InspectorGadgetzanWardrobeHeadText.appearanceLink= nil
-	InspectorGadgetzanWardrobeShoulderText.appearanceLink= nil
-	InspectorGadgetzanWardrobeBackText.appearanceLink= nil
-	InspectorGadgetzanWardrobeChestText.appearanceLink= nil
-	InspectorGadgetzanWardrobeShirtText.appearanceLink= nil
-	InspectorGadgetzanWardrobeTabardText.appearanceLink= nil
-	InspectorGadgetzanWardrobeWristText.appearanceLink= nil
-	InspectorGadgetzanWardrobeHandsText.appearanceLink= nil
-	InspectorGadgetzanWardrobeWaistText.appearanceLink= nil
-	InspectorGadgetzanWardrobeLegsText.appearanceLink= nil
-	InspectorGadgetzanWardrobeFeetText.appearanceLink= nil
-	InspectorGadgetzanWardrobeMainHandText.appearanceLink= nil
-	InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink= nil
-	
-	--[[TODO I need to clear all the other attributes I set on the text button now too, don't I?
-	e.g. refactor time!
-	InspectorGadgetzanWardrobeSecondaryHandText.appearanceLink = appearanceLink
-	InspectorGadgetzanWardrobeSecondaryHandText.itemLink = itemLink
-	InspectorGadgetzanWardrobeSecondaryHandText.categoryID = categoryID
-	InspectorGadgetzanWardrobeSecondaryHandText.sourceID = appearanceSources[i]
-	InspectorGadgetzanWardrobeSecondaryHandText.slotID = INVSLOT_OFFHAND
-	]]--
+	for categoryID, v in pairs(transmogCategories) do
+		InspectorGadgetzan.Wardrobe:SetWardrobeButtons(nil, nil, categoryID, nil)
+	end
 end
 
 -- Change the ItemSlot to match the links attached to it
@@ -1202,7 +1081,7 @@ end
 -- Change the ItemText to match the links attached to it
 function IGWardrobeItemTextButton_Update(button)
 	if button.appearanceLink then
-		local itemTransmogStatus = InspectorGadgetzan:ItemTransmogStatus(button.itemLink)
+		local itemTransmogStatus = InspectorGadgetzan.Wardrobe:ItemTransmogStatus(button.itemLink)
 		local color = itemTransmogStatues[itemTransmogStatus].color
 		local enabled = itemTransmogStatues[itemTransmogStatus].enabled
 		button:SetText(color .. button.appearanceLink:match("%[.*%]"):gsub("%[", ""):gsub("%]",""))
@@ -1226,7 +1105,7 @@ function IGWardrobe_OnLoad()
 		CollectionsJournal_LoadUI();
 	end
 	IGWardrobeFrame_ClearButtons()
-	IGInspectSourcesDump()
+	InspectorGadgetzan.Wardrobe:ProcessSources()
 	IGWardrobeFrame_UpdateButtons()
 end
 
@@ -1351,6 +1230,7 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		else
 			sourceID = sources[1].sourceID
 		end
+		-- TODO got an error here for item "Chieftain's Leggings of the Whale" -- could there be some items with just no sources attached?
 		local appearanceLink = select(7, C_TransmogCollection.GetAppearanceSourceInfo(sourceID))
 		-- substitute the text between the [] brackets with all the names for that appearance we know
 		if #collectedNames > 1 and #unCollectedNames > 0 then
@@ -1400,17 +1280,17 @@ end
 -- Configuration for the slash command dispatcher
 local IGCommandTable = {
 	["inspect"] = function()
-		IGInspect_Show()
+		InspectorGadgetzan.Wardrobe:Inspect()
 	end,
 	["mount"] = {
 		["clone"] = function()
-			IGMount_Clone()
+			InspectorGadgetzan.Mount:Clone()
 		end,
 		["report"] = function()
-			IGMount_Report()
+			InspectorGadgetzan.Mount:Report()
 		end,
 		[""] = function()  -- default
-			IGMount_Report()
+			InspectorGadgetzan.Mount:Report()
 		end,
 		["help"] = "Inspector Gadgetzan mount commands: clone, report",
 	},

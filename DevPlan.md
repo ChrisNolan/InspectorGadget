@@ -67,6 +67,10 @@ When someone in your party rates another, you also see it in the same place the 
 
 The original 3rd feature (whoops now that I found my paper work, this wasn't on the list at all). With all the toys that let your transform into different things, it is hard to know where it came from.  Report on this like we report on the mount they are riding, and give a quick way to clone them.  Maybe even pop-up so and so just transformed into this, would you like to as well?  Don't do that in combat though.  But all those Gamons at the right time... hmmm...
 
+## Automated testing
+
+https://travis-ci.org/
+
 # "Inspector Gadget" - New WoW Addon - April 12 2016
 
 Name subject to change - but applies because it is enhaucning the "Inspect", it is a gadget, and people know the character named that.
