@@ -1230,6 +1230,7 @@ function InspectorGadgetzan:TRANSMOG_COLLECTION_UPDATED(...)
 		else
 			sourceID = sources[1].sourceID
 		end
+		-- TODO got an error here for item "Chieftain's Leggings of the Whale" -- could there be some items with just no sources attached?
 		local appearanceLink = select(7, C_TransmogCollection.GetAppearanceSourceInfo(sourceID))
 		-- substitute the text between the [] brackets with all the names for that appearance we know
 		if #collectedNames > 1 and #unCollectedNames > 0 then
