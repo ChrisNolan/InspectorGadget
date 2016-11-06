@@ -417,6 +417,7 @@ function IGNewAppearanceLearnedAlertFrame_SetUp(self, sourceID, bonus_msg)
 				title = "Appearance Collection Updated"
 			end
 			self.Title:SetText(title)
+			local name = appearanceLink:match("%[.*%]")
 			if name then
 				name = name:gsub("%[", "")
 				name = name:gsub("%]", "")
