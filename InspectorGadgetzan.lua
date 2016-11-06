@@ -416,14 +416,14 @@ function IGNewAppearanceLearnedAlertFrame_SetUp(self, sourceID, bonus_msg)
 			else
 				title = "Appearance Collection Updated"
 			end
-			self.Title:SetText(title) -- rank and rank > 1 and UPGRADED_RECIPE_LEARNED_TITLE or NEW_RECIPE_LEARNED_TITLE);
-
-			--local rankTexture = IGNewAppearanceLearnedAlertFrame_GetStarTextureFromRank(rank);
-			--if rankTexture then
-			--	self.Name:SetFormattedText("%s %s", recipeName, rankTexture);
-			--else
-				self.Name:SetText(appearanceLink:match("%[.*%]"):gsub("%[", ""):gsub("%]",""));
-			--end
+			self.Title:SetText(title)
+			if name then
+				name = name:gsub("%[", "")
+				name = name:gsub("%]", "")
+			else
+				name = UNKNOWN
+			end
+			self.Name:SetText(name)
 			self.sourceID = sourceID
 			self.appearanceLink = appearanceLink
 			self.itemLink = itemLink
