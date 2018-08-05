@@ -541,7 +541,7 @@ function InspectorGadgetzan.Mount:UnitMount(unit)
 	if not(unit) then unit = "playertarget" end
 	-- code originally from SDPhantom @ http://www.wowinterface.com/forums/showpost.php?p=314055&postcount=2
 	while true do-- Infinite loop, we'll break manually
-		local _,_,_,_,_,_,_,_,_,_,spellid=UnitBuff(unit,i);--   Grab buff info
+		local _,_,_,_,_,_,_,_,_,spellid=UnitBuff(unit,i);--   Grab buff info
 		if spellid then--   If we have a buff, we have a spell ID
 			if MountCache[spellid] then
 				self.mount = MountCache[spellid]
