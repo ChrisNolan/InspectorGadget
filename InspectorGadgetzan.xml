@@ -195,7 +195,7 @@
 		<Scripts>
 			<OnClick>
 				DressUpModel:Undress();
-				PlaySound("gsTitleOptionOK");
+				PlaySound(SOUNDKIT.GS_TITLE_OPTION_OK);
 			</OnClick>
 		</Scripts>
 	</Button>

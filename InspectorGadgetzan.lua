@@ -403,9 +403,9 @@ function IGNewAppearanceLearnedAlertFrame_SetUp(self, sourceID, bonus_msg)
 	if sourceID then
 		local _, _, _, itemTexture, _, itemLink, appearanceLink = C_TransmogCollection.GetAppearanceSourceInfo(sourceID)
 		if appearanceLink then
-			--PlaySound("UI_Professions_NewRecipeLearned_Toast")
+			--PlaySound(SOUNDKIT.UI_PROFESSIONS_NEW_RECIPE_LEARNED_TOAST)
 			-- TODO should we play a different sound if it is a unique appearance, or the final item?
-			PlaySound("UI_Garrison_Toast_FollowerGained")
+			PlaySound(SOUNDKIT.UI_GARRISON_TOAST_FOLLOWER_GAINED)
 
 			self.Icon:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask");
 			self.Icon:SetTexture(itemTexture);
@@ -451,7 +451,7 @@ function IGNewMountLearnedAlertFrame_SetUp(self, spellID)
 			--   http://www.wowhead.com/sounds/name:MountSummon
 			--   would be nice if I knew the specific mount sound used by that mount and I could play it?
 			--     I don't see any connection yet, so for now I've just picked a neat sounding one.
-			PlaySound("MON_HearthSteed_MountSummon")
+			PlaySound(37588) --"MON_HearthSteed_MountSummon"
 
 			self.Icon:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask")
 			self.Icon:SetTexture(mount.icon)
@@ -887,7 +887,7 @@ function IGWardrobeViewButton_OnEnter(self)
 end
 
 function IGWardrobeViewButton_OnClick(self)
-	PlaySound("igMainMenuOptionCheckBoxOn");
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 	MyDressUpSources(InspectorGadgetzan.Wardrobe:AppearanceSources(UIDropDownMenu_GetSelectedValue(DropDownMenuTryOn)));
 end
 
@@ -939,7 +939,7 @@ function DropDownMenuTryOn_OnLoad(self)
 		  info.value = v.value
 		  info.tooltipTitle = "Tooltip title" -- not doing anything ATM.  something about a UI setting?
 		  info.tooltipText = v.tooltipText
-		  info.func = DropDownMenuTryOn_OnClick -- TODO this might be putting a warning in Logs/FrameXML.log
+		  info.func = DropDownMenuTryOn_OnClick -- TODO this might be putting a warning in Logs/FrameXML.log / Warnings are now showing in the client?
 		  UIDropDownMenu_AddButton(info, level)
 	   end
 	end
