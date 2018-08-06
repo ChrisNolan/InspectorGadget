@@ -357,7 +357,7 @@ function InspectorGadgetzan:RegisterStaticPopups()
 		timeout = 0,
 		whileDead = false,
 		hideOnEscape = true,
-		sound = "igCharacterInfoOpen",
+		sound = SOUNDKIT.KEY_RING_OPEN,
 		preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
 	}
 end
@@ -491,6 +491,7 @@ local function buildMountCache()
 			MountCache[spellID].index = i
 		end
 	end
+	-- TODO Things like that look like mounts that aren't: "Ebon Blade Deathcharger" - DK Orderhall bonus thingy. How to treat?
 	--[[
 	if NEW_MOUNT_DEBUG == 1 then
 		MountCache[127271].isCollected = true
@@ -527,7 +528,7 @@ function InspectorGadgetzan.Mount:Show(mount)
 	else
 		-- some mounts we can't see in the Mount Journal so we will give a little popup instead
 		local creatureDisplayID, descriptionText, sourceText, isSelfMount, mountType = C_MountJournal.GetMountInfoExtraByID(mount.mountID)
-		self.parent:Print(sourceText)
+		-- self.parent:Print(sourceText)
 		local details = (descriptionText or "") .. "\n\n" .. (sourceText or "")
 		--details = format("%s\n\nhttp://wowhead.com/spell=%s", details, mount.spellID)
 		StaticPopup_Show ("IGMount_Show", mount.creatureName, details)
@@ -939,7 +940,7 @@ function DropDownMenuTryOn_OnLoad(self)
 		  info.value = v.value
 		  info.tooltipTitle = "Tooltip title" -- not doing anything ATM.  something about a UI setting?
 		  info.tooltipText = v.tooltipText
-		  info.func = DropDownMenuTryOn_OnClick -- TODO this might be putting a warning in Logs/FrameXML.log / Warnings are now showing in the client?
+		  info.func = DropDownMenuTryOn_OnClick
 		  UIDropDownMenu_AddButton(info, level)
 	   end
 	end

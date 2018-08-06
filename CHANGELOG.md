@@ -1,3 +1,15 @@
+## v8.0.0.1
+
+Update for Battle for Azeroth - Declare your Allegiance
+                (Inspector Gadgetzan remains neutral in this conflict)
+
+### Bug fixes
+
+	* Fixed the PlaySound errors introduced in 7.3.5
+	* Update call to UnitBuff to fix the Mount Inspector
+	* Deal with some embedded library update issues
+	* Resolve some FrameXML warnings
+
 ## v7.1.0.1
 
 Updated for 7.1

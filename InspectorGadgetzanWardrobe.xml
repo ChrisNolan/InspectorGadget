@@ -432,7 +432,6 @@
 						</Anchors>
 						<Scripts>
 							<OnLoad function="DropDownMenuTryOn_OnLoad"/>
-							<OnClick function="DropDownMenuTryOn_OnClick"/>
 						</Scripts>
 					</Frame>
 				</Frames>
