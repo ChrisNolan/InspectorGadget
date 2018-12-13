@@ -1,0 +1,37 @@
+	[title=471] (Death Knight)	[title=470] (Druid)
+	TBD (Mage)
+	[title=462] (Paladin)
+	TBD (Rogue)
+	[title=480] (Warlock)
+	[title=463] (Demon Hunter)
+	[title=478] (Hunter)
+	TBD (Monk)
+	TBD (Priest)
+	[title=479] (Shaman)
+	TBD (Warrior)
+	
+[li][title=471] (Death Knight)[/li]
+[li][title=470] (Druid)[/li]
+[li]TBD (Mage)[/li]
+[li][title=462] (Paladin)[/li]
+[li]TBD (Rogue)[/li]
+[li][title=480] (Warlock)[/li]
+[li][title=463] (Demon Hunter)[/li]
+[li][title=478] (Hunter)[/li]
+[li]TBD (Monk)[/li]
+[li]TBD (Priest)[/li]
+[li][title=479] (Shaman)[/li]
+[li]TBD (Warrior)[/li]
+
+	Death Knight	Hiketer 90						A
+	Druid			Loukno  100 (plus 3 more)		H	A
+	Mage			Shazami 100						A
+	Paladin			Hiketeia 100 (plus 1-2 more)	A	H
+	Rogue			Pi       96						H
+	Warlock			Skadowan 87						H
+	Demon Hunter	--
+	Hunter			Tego   100 (plus 2 more)		H
+	Monk			Yuz    86	(+)					A
+	Priest			Skadoian 100 (+)				A
+	Shaman			Ilaros   100					A
+	Warrior			Karyenda						A

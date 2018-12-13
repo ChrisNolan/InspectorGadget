@@ -3,8 +3,8 @@
 ## Author: Hiketeia
 ## X-License: MIT
 
-## Interface: 80000
-## Version: 8.0.0.1
+## Interface: 81000
+## Version: 8.1.0.1
 
 ## DefaultState: enabled
 ## SavedVariables: InspectorGadgetzanDB
